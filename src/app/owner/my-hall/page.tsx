@@ -1,86 +1,273 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Calendar from '@/components/shared/Calendar';
+import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
-import { Hall, Booking } from '@/types';
-import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { Hall } from '@/types';
+import { formatPrice, DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
+
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=75';
 
 export default function MyHallPage() {
   const [halls, setHalls] = useState<Hall[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [editHall, setEditHall] = useState<Hall | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '', description: '', category: '', capacity: '',
+    pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '',
+  });
+  const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/api/halls/search').then(r => { const d = r.data.data; setHalls(Array.isArray(d) ? d : d?.halls || []); }).catch(() => {}),
-      api.get('/api/bookings').then(r => setBookings(Array.isArray(r.data.data) ? r.data.data : [])).catch(() => {}),
-    ]).finally(() => setLoading(false));
-  }, []);
+  const fetchHalls = useCallback(async () => {
+    setLoading(true);
+    try {
+      // /api/halls/owner returns 401 — use /api/halls/search and filter by userId
+      const res = await api.get('/api/halls/search', { params: { limit: 100 } });
+      const d = res.data.data;
+      const allHalls: Hall[] = Array.isArray(d) ? d : d?.halls || [];
+      // Filter by current user's id (userId field on hall)
+      const myHalls = user?.id
+        ? allHalls.filter(h => h.userId === user.id || h.ownerId === user.id)
+        : allHalls;
+      setHalls(myHalls);
+    } catch { setHalls([]); }
+    finally { setLoading(false); }
+  }, [user?.id]);
 
-  const hall = halls[0];
-  const bookedDates = bookings.map(b => b.eventDate?.split('T')[0]).filter(Boolean);
+  useEffect(() => { fetchHalls(); }, [fetchHalls]);
 
-  const handleClickBooked = (date: string) => {
-    const booking = bookings.find(b => b.eventDate?.startsWith(date));
-    if (booking) setSelectedBooking(booking);
+  const isApproved = (h: Hall) => h.approvalStatus === 'APPROVED' || h.status === 'APPROVED';
+
+  const openEdit = (h: Hall) => {
+    setEditHall(h);
+    setEditForm({
+      name: h.name,
+      description: h.description || '',
+      category: h.category || '',
+      capacity: String(h.capacity),
+      pricePerPlate: String(h.pricePerPlate),
+      city: h.city || '',
+      address: h.address || '',
+      phone: h.phone || '',
+      imageUrl: h.imageUrl || '',
+    });
   };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editHall) return;
+    if (!editForm.name || !editForm.capacity || !editForm.pricePerPlate) {
+      showToast("Majburiy maydonlarni to'ldiring", 'error'); return;
+    }
+    setSaving(true);
+    try {
+      await api.put(`/api/halls/${editHall.id}`, {
+        name: editForm.name,
+        description: editForm.description || undefined,
+        category: editForm.category || undefined,
+        capacity: parseInt(editForm.capacity),
+        pricePerPlate: parseFloat(editForm.pricePerPlate),
+        city: editForm.city || undefined,
+        address: editForm.address || undefined,
+        phone: editForm.phone || undefined,
+        imageUrl: editForm.imageUrl || undefined,
+      });
+      showToast("Muvaffaqiyatli yangilandi!");
+      setEditHall(null);
+      fetchHalls();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Xatolik';
+      showToast(msg, 'error');
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setSaving(true);
+    try {
+      await api.delete(`/api/halls/${deleteId}`);
+      showToast("To'yxona o'chirildi");
+      setDeleteId(null);
+      fetchHalls();
+    } catch { showToast("O'chirishda xatolik", 'error'); }
+    finally { setSaving(false); }
+  };
+
+  const imgSrc = (h: Hall) =>
+    h.imageUrl && !h.imageUrl.includes('example.com') ? h.imageUrl : FALLBACK_IMG;
 
   if (loading) return <div className="loading-page"><div className="spinner" /></div>;
 
-  if (!hall) return (
-    <div className="empty-state">
-      <div className="empty-state-icon">🏛️</div>
-      <h3>Hali to&apos;yxona qo&apos;shilmagan</h3>
-      <p style={{ marginBottom: 'var(--space-lg)' }}>Yangi to&apos;yxona ro&apos;yxatdan o&apos;tkazing</p>
-      <Link href="/owner/register-hall" className="btn btn-primary">➕ To&apos;yxona qo&apos;shish</Link>
-    </div>
-  );
-
   return (
     <div className="fade-in">
-      <div className="flex-between" style={{ marginBottom: 'var(--space-xl)' }}>
-        <h1 className="page-title" style={{ marginBottom: 0 }}>{hall.name}</h1>
-        <Link href="/owner/my-hall/edit" className="btn btn-outline">✏️ Tahrirlash</Link>
+      <div className="flex-between" style={{ marginBottom: 'var(--s-8)' }}>
+        <div>
+          <h1 className="page-title" style={{ marginBottom: 'var(--s-1)' }}>To&apos;yxonalarim</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{halls.length} ta to&apos;yxona</p>
+        </div>
+        <Link href="/owner/register-hall" className="btn btn-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Yangi to&apos;yxona
+        </Link>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-xl)', marginBottom: 'var(--space-2xl)' }}>
-        <div className="image-placeholder" style={{ minHeight: 300 }}>
-          {hall.imageUrl ? <img src={hall.imageUrl} alt={hall.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-lg)' }} /> : "🏛️ To'yxona rasmi"}
+      {halls.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">🏛️</div>
+          <h3>Hali to&apos;yxona qo&apos;shilmagan</h3>
+          <p style={{ marginBottom: 'var(--s-6)' }}>Yangi to&apos;yxona ro&apos;yxatdan o&apos;tkazing</p>
+          <Link href="/owner/register-hall" className="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            To&apos;yxona qo&apos;shish
+          </Link>
         </div>
-        <div className="card card-body">
-          <h3 style={{ marginBottom: 'var(--space-lg)' }}>Ma&apos;lumotlar</h3>
-          <div style={{ display: 'grid', gap: 'var(--space-md)' }}>
-            <div><strong>Kategoriya:</strong> {hall.category || '—'}</div>
-            <div><strong>Sig&apos;im:</strong> {hall.capacity} kishi</div>
-            <div><strong>Narx:</strong> {formatPrice(hall.pricePerPlate)} / kishi</div>
-            <div><strong>Rayon:</strong> {hall.city || '—'}</div>
-            <div><strong>Manzil:</strong> {hall.address || '—'}</div>
-            <div><strong>Status:</strong> <span className={`badge ${hall.status === 'APPROVED' ? 'badge-success' : 'badge-warning'}`}>{hall.status === 'APPROVED' ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}</span></div>
-            {hall.description && <div><strong>Tavsif:</strong> {hall.description}</div>}
-          </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-6)' }}>
+          {halls.map(h => (
+            <div key={h.id} style={{
+              display: 'grid', gridTemplateColumns: '280px 1fr auto',
+              gap: 'var(--s-6)', background: 'var(--surface)',
+              borderRadius: 'var(--r-xl)', overflow: 'hidden',
+              boxShadow: 'var(--shadow-soft)', border: '1px solid var(--border)',
+            }}>
+              {/* Image */}
+              <div style={{ position: 'relative', minHeight: 200 }}>
+                <Image src={imgSrc(h)} alt={h.name} fill style={{ objectFit: 'cover' }} unoptimized />
+                <div style={{ position: 'absolute', top: 12, left: 12 }}>
+                  <span className={`badge ${isApproved(h) ? 'badge-success' : 'badge-warning'}`}>
+                    {isApproved(h) ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div style={{ padding: 'var(--s-6)' }}>
+                <h3 style={{ marginBottom: 'var(--s-3)', fontSize: '1.2rem' }}>{h.name}</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s-3)', marginBottom: 'var(--s-4)' }}>
+                  <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {h.city || 'Toshkent'}{h.address ? `, ${h.address}` : ''}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    {h.capacity} kishi sig&apos;im
+                  </div>
+                  <div style={{ fontSize: '0.88rem' }}>
+                    <span style={{ color: 'var(--text-muted)', marginRight: 4 }}>Narx:</span>
+                    <strong style={{ color: 'var(--burgundy)' }}>{formatPrice(h.pricePerPlate)}/kishi</strong>
+                  </div>
+                  {h.category && (
+                    <div style={{ fontSize: '0.88rem' }}>
+                      <span style={{ color: 'var(--text-muted)', marginRight: 4 }}>Kategoriya:</span>
+                      <span>{h.category}</span>
+                    </div>
+                  )}
+                </div>
+                {h.description && (
+                  <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.7, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {h.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div style={{ padding: 'var(--s-6)', display: 'flex', flexDirection: 'column', gap: 'var(--s-3)', justifyContent: 'center', minWidth: 140 }}>
+                <Link href="/owner/bookings" className="btn btn-sm btn-ghost" style={{ textAlign: 'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Bronlar
+                </Link>
+                <button className="btn btn-sm btn-outline" onClick={() => openEdit(h)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Tahrirlash
+                </button>
+                <button className="btn btn-sm btn-danger" onClick={() => setDeleteId(h.id)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  O&apos;chirish
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
-      <h3 style={{ marginBottom: 'var(--space-md)' }}>Bron kalendari</h3>
-      <Calendar bookedDates={bookedDates} onClickBooked={handleClickBooked} />
-
-      <Modal isOpen={!!selectedBooking} onClose={() => setSelectedBooking(null)} title="Bron ma'lumotlari">
-        {selectedBooking && (
-          <div style={{ display: 'grid', gap: 'var(--space-md)' }}>
-            <div><strong>Sana:</strong> {formatDate(selectedBooking.eventDate)}</div>
-            <div><strong>Mehmonlar:</strong> {selectedBooking.numberOfGuests} kishi</div>
-            <div><strong>Umumiy narx:</strong> {formatPrice(selectedBooking.totalAmount)}</div>
-            <div><strong>Status:</strong> {BOOKING_STATUSES[selectedBooking.status] || selectedBooking.status}</div>
-            {selectedBooking.user && <div><strong>Mijoz:</strong> {selectedBooking.user.firstName} {selectedBooking.user.lastName}</div>}
-            {selectedBooking.notes && <div><strong>Izoh:</strong> {selectedBooking.notes}</div>}
+      {/* Edit Modal */}
+      <Modal isOpen={!!editHall} onClose={() => setEditHall(null)} title={`Tahrirlash: ${editHall?.name || ''}`}>
+        <form onSubmit={handleEditSubmit}>
+          <div className="form-group">
+            <label className="form-label">Nomi *</label>
+            <input className="form-input" value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} />
           </div>
-        )}
+          <div className="form-group">
+            <label className="form-label">Tavsif</label>
+            <textarea className="form-textarea" value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} style={{ minHeight: 80 }} />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Kategoriya</label>
+              <select className="form-select" value={editForm.category} onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}>
+                <option value="">Tanlang</option>
+                {HALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Rayon</label>
+              <select className="form-select" value={editForm.city} onChange={e => setEditForm(p => ({ ...p, city: e.target.value }))}>
+                <option value="">Tanlang</option>
+                {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Sig&apos;im *</label>
+              <input type="number" className="form-input" value={editForm.capacity} onChange={e => setEditForm(p => ({ ...p, capacity: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Narx (so&apos;m/kishi) *</label>
+              <input type="number" className="form-input" value={editForm.pricePerPlate} onChange={e => setEditForm(p => ({ ...p, pricePerPlate: e.target.value }))} />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Manzil</label>
+              <input className="form-input" placeholder="To'liq manzil" value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Telefon</label>
+              <input className="form-input" placeholder="+998 90 ..." value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Rasm URL</label>
+            <input className="form-input" placeholder="https://..." value={editForm.imageUrl} onChange={e => setEditForm(p => ({ ...p, imageUrl: e.target.value }))} />
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--s-4)', marginTop: 'var(--s-6)' }}>
+            <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
+              {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => setEditHall(null)}>Bekor qilish</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirm Modal */}
+      <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="O'chirishni tasdiqlang">
+        <p style={{ marginBottom: 'var(--s-6)', color: 'var(--text-secondary)' }}>
+          Bu to&apos;yxonani o&apos;chirmoqchimisiz? Bu amalni qaytarib bo&apos;lmaydi.
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--s-4)' }}>
+          <button className="btn btn-danger" onClick={handleDelete} disabled={saving} style={{ flex: 1 }}>
+            {saving ? 'O\'chirilmoqda...' : 'Ha, o\'chirish'}
+          </button>
+          <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>Bekor qilish</button>
+        </div>
       </Modal>
     </div>
   );

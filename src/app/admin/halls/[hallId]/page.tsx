@@ -24,11 +24,15 @@ export default function AdminHallDetailPage({ params }: { params: Promise<{ hall
   }, [hallId]);
 
   const approveHall = async () => {
-    try { await api.put(`/api/halls/${hallId}`, { status: 'APPROVED' }); showToast('Tasdiqlandi!'); setHall(prev => prev ? { ...prev, status: 'APPROVED' } : prev); }
-    catch { showToast('Xatolik', 'error'); }
+    try {
+      await api.put(`/api/halls/${hallId}`, { approvalStatus: 'APPROVED' });
+      showToast('Tasdiqlandi!');
+      setHall(prev => prev ? { ...prev, approvalStatus: 'APPROVED', status: 'APPROVED' } : prev);
+    } catch { showToast('Xatolik', 'error'); }
   };
 
-  const bookedDates = bookings.filter(b => b.hallId === hallId).map(b => b.eventDate?.split('T')[0]).filter(Boolean);
+  const isApproved = hall?.approvalStatus === 'APPROVED' || hall?.status === 'APPROVED';
+  const bookedDates = bookings.filter(b => b.hallId === hallId).map(b => b.eventDate?.split('T')[0]).filter(Boolean) as string[];
 
   const handleClickBooked = (date: string) => {
     const b = bookings.find(b => b.eventDate?.startsWith(date));
@@ -43,7 +47,10 @@ export default function AdminHallDetailPage({ params }: { params: Promise<{ hall
       <div className="flex-between" style={{ marginBottom: 'var(--space-xl)' }}>
         <h1 className="page-title" style={{ marginBottom: 0 }}>{hall.name}</h1>
         <div className="flex">
-          {hall.status !== 'APPROVED' && <button className="btn btn-secondary" onClick={approveHall}>✓ Tasdiqlash</button>}
+          {!isApproved && <button className="btn btn-secondary" onClick={approveHall}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 5 }}><polyline points="20 6 9 17 4 12"/></svg>
+            Tasdiqlash
+          </button>}
           <button className="btn btn-ghost" onClick={() => window.history.back()}>← Orqaga</button>
         </div>
       </div>
@@ -59,7 +66,7 @@ export default function AdminHallDetailPage({ params }: { params: Promise<{ hall
             <div><strong>Sig&apos;im:</strong> {hall.capacity} kishi</div>
             <div><strong>Narx:</strong> {formatPrice(hall.pricePerPlate)}/kishi</div>
             <div><strong>Rayon:</strong> {hall.city || '—'}</div>
-            <div><strong>Status:</strong> <span className={`badge ${hall.status === 'APPROVED' ? 'badge-success' : 'badge-warning'}`}>{hall.status === 'APPROVED' ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}</span></div>
+            <div><strong>Status:</strong> <span className={`badge ${isApproved ? 'badge-success' : 'badge-warning'}`}>{isApproved ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}</span></div>
             {hall.description && <div><strong>Tavsif:</strong> {hall.description}</div>}
           </div>
         </div>

@@ -5,60 +5,64 @@ import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
-/* ── Mock Venue Data ── */
+/* ── Real Unsplash venue images ── */
 const VENUES = [
   {
     id: '1', name: "Navro'z Palace", district: 'Yunusobod', address: "Yunusobod tumani, Amir Temur ko'chasi 45",
-    capacity: 500, priceRange: "180 000 - 250 000", rating: 4.9,
+    capacity: 500, priceRange: "180 000", rating: 4.9,
     description: "Toshkentdagi eng hashamatli to'y marosimlarini o'tkazish uchun mo'ljallangan zamonaviy saroy",
-    image: '🏛️', imageLabel: 'Luxury Wedding Hall Interior', phone: '+998 90 111 22 33', badge: 'Premium',
+    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80',
+    badge: 'Premium',
   },
   {
     id: '2', name: 'Grand Tashkent', district: 'Mirobod', address: "Mirobod tumani, Bunyodkor ko'chasi 12",
-    capacity: 400, priceRange: "150 000 - 200 000", rating: 4.8,
+    capacity: 400, priceRange: "150 000", rating: 4.8,
     description: "Klassik uslubdagi keng va yorug' zal, 400 kishilik sig'im bilan",
-    image: '✨', imageLabel: 'Grand Ballroom for 400 Guests', phone: '+998 90 222 33 44', badge: 'Mashhur',
+    image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80',
+    badge: 'Mashhur',
   },
   {
     id: '3', name: 'Royal Wedding Hall', district: 'Chilonzor', address: "Chilonzor tumani, Qatortol ko'chasi 78",
-    capacity: 350, priceRange: "120 000 - 180 000", rating: 4.7,
+    capacity: 350, priceRange: "120 000", rating: 4.7,
     description: "Shohona bezatilgan zal, zamonaviy yorug'lik tizimi va professional xizmat",
-    image: '👑', imageLabel: 'Elegant Wedding Stage Design', phone: '+998 90 333 44 55',
+    image: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=600&q=80',
   },
   {
     id: '4', name: 'Diamond Hall', district: 'Yakkasaroy', address: "Yakkasaroy tumani, Shota Rustaveli 100",
-    capacity: 600, priceRange: "200 000 - 300 000", rating: 4.9,
+    capacity: 600, priceRange: "200 000", rating: 4.9,
     description: "Toshkentning eng katta va zamonaviy to'yxonasi — olmos darajasidagi xizmat",
-    image: '💎', imageLabel: 'Premium Banquet Hall', phone: '+998 90 444 55 66', badge: 'VIP',
+    image: 'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=600&q=80',
+    badge: 'VIP',
   },
   {
     id: '5', name: 'Oqshom Plaza', district: 'Sergeli', address: "Sergeli tumani, Yangi Sergeli 5",
-    capacity: 250, priceRange: "100 000 - 150 000", rating: 4.6,
+    capacity: 250, priceRange: "100 000", rating: 4.6,
     description: "Oilaviy muhitda qulay va sifatli xizmat, ochiq hovli va bog' bilan",
-    image: '🌙', imageLabel: 'Outdoor Wedding Garden', phone: '+998 90 555 66 77',
+    image: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=600&q=80',
   },
   {
     id: '6', name: 'Samarqand Hall', district: 'Olmazor', address: "Olmazor tumani, Beruniy ko'chasi 30",
-    capacity: 300, priceRange: "130 000 - 170 000", rating: 4.7,
+    capacity: 300, priceRange: "130 000", rating: 4.7,
     description: "O'zbek milliy uslubida bezatilgan zal, an'anaviy va zamonaviy uyg'unlik",
-    image: '🕌', imageLabel: 'Luxury Reception Area', phone: '+998 90 666 77 88', badge: 'Yangi',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80',
+    badge: 'Yangi',
   },
 ];
 
 const FEATURES = [
   { icon: '🔍', title: "Oson qidiruv", desc: "Rayon, narx va sig'im bo'yicha filtrlang. Real-time qidiruv bilan eng mos to'yxonani toping." },
   { icon: '📅', title: "Online bron", desc: "Kalendardan bo'sh kunni tanlang, qo'shimcha xizmatlarni belgilang va bir zumda bron qiling." },
-  { icon: '💳', title: "Xavfsiz to'lov", desc: "20% avans to'lab joyingizni band qiling. Stripe orqali xavfsiz va tez to'lov tizimi." },
+  { icon: '💳', title: "Xavfsiz to'lov", desc: "25% avans to'lab joyingizni band qiling. Xavfsiz va tez to'lov tizimi." },
   { icon: '⭐', title: "Ishonchli sharhlar", desc: "Haqiqiy mijozlar sharhlarini o'qing va eng yaxshi to'yxonani ishonch bilan tanlang." },
 ];
 
 const GALLERY = [
-  { label: 'Hashamatli to\'y zali interyeri', icon: '🏛️' },
-  { label: 'Zamonaviy sahna bezatish', icon: '🎭' },
-  { label: 'Premium banket stollari', icon: '🍽️' },
-  { label: 'Ochiq havo marosimi', icon: '🌿' },
-  { label: 'Romantik yoritish dizayni', icon: '✨' },
-  { label: 'Gul bezaklari va dekor', icon: '💐' },
+  { label: 'Hashamatli to\'y zali interyeri', src: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=700&q=75' },
+  { label: 'Zamonaviy sahna bezatish', src: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&q=75' },
+  { label: 'Premium banket stollari', src: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=500&q=75' },
+  { label: 'Ochiq havo marosimi', src: 'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=700&q=75' },
+  { label: 'Romantik yoritish dizayni', src: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=500&q=75' },
+  { label: 'Gul bezaklari va dekor', src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&q=75' },
 ];
 
 const TESTIMONIALS = [
@@ -76,7 +80,12 @@ const TESTIMONIALS = [
   },
 ];
 
-function formatPrice(p: string) { return p + " so'm"; }
+const STATS = [
+  { value: '200+', label: "To'yxonalar" },
+  { value: '5,000+', label: "Muvaffaqiyatli to'ylar" },
+  { value: '4.8', label: "O'rtacha reyting" },
+  { value: '50+', label: "Shaharlar" },
+];
 
 export default function HomePage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -85,18 +94,13 @@ export default function HomePage() {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
+          if (entry.isIntersecting) entry.target.classList.add('visible');
         });
       },
       { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     );
-
-    document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right').forEach((el) => {
-      observerRef.current?.observe(el);
-    });
-
+    document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right')
+      .forEach(el => observerRef.current?.observe(el));
     return () => observerRef.current?.disconnect();
   }, []);
 
@@ -120,50 +124,80 @@ export default function HomePage() {
             </p>
             <div className="hero-actions reveal reveal-delay-4">
               <Link href="/halls" className="btn btn-primary btn-xl">
-                To&apos;yxonalarni ko&apos;rish
+                🏛️ To&apos;yxonalarni ko&apos;rish
               </Link>
               <Link href="/register" className="btn btn-outline btn-xl">
-                Bepul ro&apos;yxatdan o&apos;tish
+                ✨ Bepul ro&apos;yxatdan o&apos;tish
               </Link>
             </div>
             <div className="hero-stats reveal reveal-delay-5">
-              <div>
-                <div className="hero-stat-value">200+</div>
-                <div className="hero-stat-label">To&apos;yxonalar</div>
-              </div>
-              <div>
-                <div className="hero-stat-value">5,000+</div>
-                <div className="hero-stat-label">Muvaffaqiyatli to&apos;ylar</div>
-              </div>
-              <div>
-                <div className="hero-stat-value">4.8</div>
-                <div className="hero-stat-label">O&apos;rtacha reyting</div>
-              </div>
+              {STATS.slice(0, 3).map((s, i) => (
+                <div key={i}>
+                  <div className="hero-stat-value">{s.value}</div>
+                  <div className="hero-stat-label">{s.label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="hero-visual reveal-scale reveal-delay-3">
-            <div className="hero-img-main">
-              <div className="img-placeholder" style={{ height: '100%' }}>
-                <span className="img-placeholder-icon">🏛️</span>
-                <span>Luxury Wedding Hall Interior</span>
+            <div className="hero-img-main" style={{ position: 'relative' }}>
+              <img
+                src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=900&q=80"
+                alt="Luxury Wedding Hall"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => {
+                  const t = e.target as HTMLImageElement;
+                  t.style.display = 'none';
+                  const p = t.parentElement!;
+                  p.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">🏛️</span><span>Luxury Wedding Hall</span></div>';
+                }}
+              />
+              <div style={{ position: 'absolute', top: 'var(--s-4)', left: 'var(--s-4)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderRadius: 'var(--r-full)', padding: '0.3rem 0.9rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--burgundy)' }}>
+                ★ 4.9 · Premium
               </div>
             </div>
             <div className="hero-img-sm">
-              <div className="img-placeholder" style={{ height: '100%' }}>
-                <span className="img-placeholder-icon">💐</span>
-                <span>Elegant Decor</span>
-              </div>
+              <img
+                src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&q=80"
+                alt="Elegant Decor"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => {
+                  const t = e.target as HTMLImageElement;
+                  t.style.display = 'none';
+                  t.parentElement!.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">💐</span><span>Elegant Decor</span></div>';
+                }}
+              />
             </div>
             <div className="hero-img-sm">
-              <div className="img-placeholder" style={{ height: '100%' }}>
-                <span className="img-placeholder-icon">🎂</span>
-                <span>Wedding Cake</span>
-              </div>
+              <img
+                src="https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=500&q=80"
+                alt="Wedding Banquet"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => {
+                  const t = e.target as HTMLImageElement;
+                  t.style.display = 'none';
+                  t.parentElement!.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">🍽️</span><span>Wedding Banquet</span></div>';
+                }}
+              />
             </div>
           </div>
         </div>
       </section>
+
+      {/* ═══ STATS BANNER ═══ */}
+      <div style={{ background: 'var(--burgundy)', padding: 'var(--s-8) 0' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--s-4)', textAlign: 'center' }}>
+            {STATS.map((s, i) => (
+              <div key={i}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--gold-light)', fontWeight: 700 }}>{s.value}</div>
+                <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)', marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ═══ FEATURED VENUES ═══ */}
       <section className="section-lg" style={{ background: 'var(--white)' }}>
@@ -178,10 +212,13 @@ export default function HomePage() {
             {VENUES.map((v, i) => (
               <div key={v.id} className={`venue-card reveal reveal-delay-${(i % 3) + 1}`}>
                 <div className="venue-card-img">
-                  <div className="img-placeholder">
-                    <span className="img-placeholder-icon">{v.image}</span>
-                    <span>{v.imageLabel}</span>
-                  </div>
+                  <img
+                    src={v.image}
+                    alt={v.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}
+                    onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
+                    loading="lazy"
+                  />
                   {v.badge && <div className="venue-card-badge">{v.badge}</div>}
                   <button className="venue-card-fav" aria-label="Sevimli">🤍</button>
                 </div>
@@ -198,10 +235,10 @@ export default function HomePage() {
                   <div className="venue-card-divider" />
                   <div className="venue-card-footer">
                     <div className="venue-card-price">
-                      <span className="venue-card-price-value">{formatPrice(v.priceRange)}</span>
+                      <span className="venue-card-price-value">{v.priceRange} so&apos;m</span>
                       <span className="venue-card-price-label">1 kishi uchun</span>
                     </div>
-                    <Link href={`/halls/${v.id}`} className="btn btn-sm btn-primary">
+                    <Link href="/halls" className="btn btn-sm btn-primary">
                       Batafsil →
                     </Link>
                   </div>
@@ -229,7 +266,7 @@ export default function HomePage() {
           <div className="grid grid-4">
             {FEATURES.map((f, i) => (
               <div key={i} className={`feature-card reveal reveal-delay-${i + 1}`}>
-                <div className="feature-icon">{f.icon}</div>
+                <div className="feature-icon" style={{ fontSize: '2rem' }}>{f.icon}</div>
                 <h4>{f.title}</h4>
                 <p>{f.desc}</p>
               </div>
@@ -238,8 +275,34 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ GALLERY ═══ */}
+      {/* ═══ HOW IT WORKS ═══ */}
       <section className="section-lg" style={{ background: 'var(--white)' }}>
+        <div className="container">
+          <div className="section-header reveal">
+            <span className="accent-text">✦ Qanday ishlaydi?</span>
+            <h2>3 ta oddiy qadam</h2>
+          </div>
+          <div className="grid grid-3">
+            {[
+              { step: '01', icon: '🔍', title: "To'yxona tanlang", desc: "200+ to'yxona orasidan rayon, narx va sig'im bo'yicha eng mosini tanlang" },
+              { step: '02', icon: '📅', title: "Kun va xizmatlarni tanlang", desc: "Kalendardan bo'sh kunni belgilang, qo'shimcha xizmatlar qo'shing" },
+              { step: '03', icon: '✅', title: "Bron qiling va to'lang", desc: "25% avans to'lab joyingizni band qiling. Tasdiqlash darhol keladi" },
+            ].map((step, i) => (
+              <div key={i} className={`reveal reveal-delay-${i + 1}`} style={{ textAlign: 'center', padding: 'var(--s-8)' }}>
+                <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, var(--burgundy), var(--burgundy-deep))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--s-4)', boxShadow: '0 8px 24px rgba(114,47,55,0.25)' }}>
+                  <span style={{ fontSize: '1.8rem' }}>{step.icon}</span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-accent)', fontSize: '0.85rem', color: 'var(--gold)', letterSpacing: '0.1em', marginBottom: 'var(--s-2)' }}>QADAM {step.step}</div>
+                <h4 style={{ fontSize: '1.2rem', marginBottom: 'var(--s-3)' }}>{step.title}</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7 }}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GALLERY ═══ */}
+      <section className="section-lg">
         <div className="container">
           <div className="section-header reveal">
             <span className="accent-text">✦ Galereya</span>
@@ -249,10 +312,13 @@ export default function HomePage() {
           <div className="gallery-grid">
             {GALLERY.map((g, i) => (
               <div key={i} className={`gallery-item reveal-scale reveal-delay-${(i % 3) + 1}`}>
-                <div className="img-placeholder" style={{ height: '100%' }}>
-                  <span className="img-placeholder-icon">{g.icon}</span>
-                  <span>{g.label}</span>
-                </div>
+                <img
+                  src={g.src}
+                  alt={g.label}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}
+                  loading="lazy"
+                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0.1'; }}
+                />
                 <div className="gallery-overlay">
                   <span>{g.label}</span>
                 </div>
@@ -263,7 +329,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section-lg">
+      <section className="section-lg" style={{ background: 'var(--white)' }}>
         <div className="container">
           <div className="section-header reveal">
             <span className="accent-text">✦ Mijozlar fikri</span>
@@ -291,6 +357,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══ PARTNERS ═══ */}
+      <section style={{ padding: 'var(--s-12) 0', background: 'var(--cream-deep)', borderTop: '1px solid var(--border-light)' }}>
+        <div className="container">
+          <p style={{ textAlign: 'center', fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 'var(--s-8)' }}>Hamkorlarimiz</p>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 'var(--s-12)', flexWrap: 'wrap', opacity: 0.45 }}>
+            {['🏨 Hilton', '✈️ Uzbekistan Airways', '🌹 Premium Florals', '🎂 Royal Bakery', '📷 Studio Pro'].map((p, i) => (
+              <span key={i} style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.05em' }}>{p}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ CTA ═══ */}
       <section className="cta-section">
         <div className="container">
@@ -303,10 +381,10 @@ export default function HomePage() {
             </p>
             <div style={{ display: 'flex', gap: 'var(--s-4)', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/halls" className="btn btn-gold btn-xl">
-                To&apos;yxonalarni ko&apos;rish
+                🏛️ To&apos;yxonalarni ko&apos;rish
               </Link>
               <Link href="/register" className="btn btn-xl" style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--gold-light)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                Bepul boshlash
+                ✨ Bepul boshlash
               </Link>
             </div>
           </div>

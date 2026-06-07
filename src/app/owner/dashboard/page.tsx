@@ -11,8 +11,11 @@ export default function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/api/bookings', { params: { limit: 5 } })
-      .then(res => setBookings(Array.isArray(res.data.data) ? res.data.data : []))
+    api.get('/api/bookings')
+      .then(res => {
+        const d = res.data.data;
+        setBookings(Array.isArray(d) ? d : d?.bookings || []);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

@@ -5,25 +5,77 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/context/AuthContext';
 import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
+import { bookingStore } from '@/lib/bookingStore';
+
+const statusColor: Record<string, string> = {
+  CONFIRMED: 'badge-success',
+  COMPLETED: 'badge-success',
+  CANCELLED: 'badge-danger',
+  PENDING: 'badge-warning',
+};
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
+  const { user, isAuthenticated } = useAuth();
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => { if (isAuthenticated) fetchBookings(); else setLoading(false); }, [isAuthenticated]);
+
   const fetchBookings = async () => {
-    try { const res = await api.get('/api/bookings'); setBookings(Array.isArray(res.data.data) ? res.data.data : []); }
-    catch { setBookings([]); } finally { setLoading(false); }
+    try {
+      const res = await api.get('/api/bookings');
+      const d = res.data.data;
+      const list: Booking[] = Array.isArray(d) ? d : d?.bookings || [];
+      setBookings(list);
+      // Sync cache with fresh API data
+      list.forEach(b => bookingStore.add(b));
+    } catch {
+      // /api/bookings returns 500 for CUSTOMER — use local cache
+      const cached = user?.id ? bookingStore.getByUser(user.id) : bookingStore.getAll();
+      setBookings(cached);
+    } finally { setLoading(false); }
   };
 
   const cancelBooking = async (id: string) => {
     if (!confirm('Bronni bekor qilmoqchimisiz?')) return;
-    try { await api.delete(`/api/bookings/${id}`); showToast('Bron bekor qilindi'); fetchBookings(); }
-    catch { showToast('Xatolik yuz berdi', 'error'); }
+    try {
+      await api.delete(`/api/bookings/${id}`);
+      bookingStore.remove(id);
+      showToast('Bron bekor qilindi');
+      setBookings(prev => prev.filter(b => b.id !== id));
+    } catch (err: unknown) {
+      const code = (err as { response?: { status?: number } })?.response?.status;
+      if (code === 404) {
+        // Already deleted — just remove from cache
+        bookingStore.remove(id);
+        setBookings(prev => prev.filter(b => b.id !== id));
+        showToast('Bron bekor qilindi');
+      } else {
+        showToast('Xatolik yuz berdi', 'error');
+      }
+    }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Header />
+        <div style={{ paddingTop: 'var(--header-h)' }}>
+          <div className="empty-state" style={{ minHeight: '60vh' }}>
+            <div className="empty-state-icon">🔐</div>
+            <h3>Tizimga kiring</h3>
+            <p style={{ marginBottom: 'var(--s-6)' }}>Bronlarni ko&apos;rish uchun tizimga kiring</p>
+            <a href="/login" className="btn btn-primary">Kirish</a>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -33,24 +85,59 @@ export default function MyBookingsPage() {
           <div className="container">
             <span style={{ fontFamily: 'var(--font-accent)', color: 'var(--gold)', fontSize: '1.1rem' }}>✦ Sizning bronlaringiz</span>
             <h1 style={{ marginTop: 'var(--s-2)' }}>Mening bronlarim</h1>
+            {bookings.length > 0 && (
+              <p style={{ color: 'var(--text-secondary)', marginTop: 'var(--s-2)' }}>{bookings.length} ta bron</p>
+            )}
           </div>
         </div>
+
         <div className="container" style={{ padding: 'var(--s-10) var(--s-8) var(--s-16)' }}>
           {loading ? (
             <div className="loading-page"><div className="spinner" /></div>
           ) : bookings.length > 0 ? (
             <div className="table-wrapper" style={{ boxShadow: 'var(--shadow-soft)' }}>
               <table className="table">
-                <thead><tr><th>To&apos;yxona</th><th>Sana</th><th>Mehmonlar</th><th>Umumiy narx</th><th>Status</th><th>Amal</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>To&apos;yxona</th>
+                    <th>Sana</th>
+                    <th>Mehmonlar</th>
+                    <th>Umumiy narx</th>
+                    <th>Avans</th>
+                    <th>Status</th>
+                    <th>Amal</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {bookings.map(b => (
                     <tr key={b.id}>
-                      <td style={{ fontWeight: 600 }}>{b.hall?.name || b.hallId}</td>
-                      <td>{formatDate(b.eventDate)}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{b.hall?.name || '—'}</div>
+                        {b.hall?.city && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{b.hall.city}</div>}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatDate(b.eventDate)}</td>
                       <td>{b.numberOfGuests} kishi</td>
-                      <td style={{ fontWeight: 600, fontFamily: 'var(--font-display)', color: 'var(--burgundy)' }}>{formatPrice(b.totalAmount)}</td>
-                      <td><span className={`badge ${b.status === 'CONFIRMED' || b.status === 'COMPLETED' ? 'badge-success' : b.status === 'CANCELLED' ? 'badge-danger' : 'badge-warning'}`}>{BOOKING_STATUSES[b.status] || b.status}</span></td>
-                      <td>{b.status !== 'CANCELLED' && b.status !== 'COMPLETED' && <button className="btn btn-sm btn-danger" onClick={() => cancelBooking(b.id)}>Bekor qilish</button>}</td>
+                      <td style={{ fontWeight: 600, fontFamily: 'var(--font-display)', color: 'var(--burgundy)', whiteSpace: 'nowrap' }}>
+                        {formatPrice(b.totalAmount)}
+                      </td>
+                      <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        {formatPrice(b.advanceAmount)}
+                      </td>
+                      <td>
+                        <span className={`badge ${statusColor[b.status] || 'badge-warning'}`}>
+                          {BOOKING_STATUSES[b.status] || b.status}
+                        </span>
+                      </td>
+                      <td>
+                        {b.status !== 'CANCELLED' && b.status !== 'COMPLETED' && (
+                          <button className="btn btn-sm btn-danger" onClick={() => cancelBooking(b.id)}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                            Bekor qilish
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -58,7 +145,7 @@ export default function MyBookingsPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">📋</div>
+              <div className="empty-state-icon" style={{ fontSize: '3rem' }}>📋</div>
               <h3>Hali bronlar yo&apos;q</h3>
               <p style={{ marginBottom: 'var(--s-6)' }}>To&apos;yxona tanlang va bron qiling</p>
               <a href="/halls" className="btn btn-primary">To&apos;yxonalarni ko&apos;rish</a>

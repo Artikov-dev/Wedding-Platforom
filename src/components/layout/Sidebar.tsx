@@ -30,6 +30,7 @@ const adminSections: SidebarSection[] = [
       { href: '/admin/halls/create', label: "Yangi to'yxona", icon: '➕' },
       { href: '/admin/owners', label: "To'yxona egalari", icon: '👥' },
       { href: '/admin/bookings', label: 'Bronlar', icon: '📋' },
+      { href: '/admin/payments', label: "To'lovlar", icon: '💳' },
     ],
   },
 ];
@@ -44,8 +45,8 @@ const ownerSections: SidebarSection[] = [
   {
     title: "To'yxonam",
     links: [
-      { href: '/owner/my-hall', label: "To'yxonam", icon: '🏛️' },
-      { href: '/owner/register-hall', label: "Ro'yxatdan o'tkazish", icon: '➕' },
+      { href: '/owner/my-hall', label: "To'yxonalarim", icon: '🏛️' },
+      { href: '/owner/register-hall', label: "Yangi to'yxona", icon: '➕' },
       { href: '/owner/bookings', label: 'Bronlar', icon: '📋' },
     ],
   },

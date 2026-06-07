@@ -6,6 +6,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
 
+const TEST_ACCOUNTS = [
+  { label: 'Admin', email: 'superadmin@wedding.uz', password: 'SuperAdmin1234!', role: 'ADMIN' },
+  { label: 'Hall Owner', email: 'hallowner_test@wedding.uz', password: 'HallOwner1234!', role: 'HALL_OWNER' },
+  { label: 'Customer', email: 'customer_test@wedding.uz', password: 'Customer1234!', role: 'CUSTOMER' },
+];
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,6 +64,26 @@ export default function LoginPage() {
         </form>
         <div className="auth-footer">
           Akkountingiz yo&apos;qmi? <Link href="/register">Ro&apos;yxatdan o&apos;ting</Link>
+        </div>
+
+        {/* Test accounts for development */}
+        <div style={{ marginTop: 'var(--s-6)', padding: 'var(--s-4)', background: 'rgba(139,92,24,0.07)', borderRadius: 'var(--r-md)', border: '1px dashed var(--gold)' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 'var(--s-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Test akkauntlar
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)' }}>
+            {TEST_ACCOUNTS.map(acc => (
+              <button
+                key={acc.email}
+                type="button"
+                onClick={() => { setEmail(acc.email); setPassword(acc.password); }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--s-2) var(--s-3)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left' }}
+              >
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{acc.label}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{acc.email}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

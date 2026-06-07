@@ -1,6 +1,18 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://wedding-backend-8.onrender.com';
+// Dev muhitida Next.js proxy orqali (/backend/*) CORS muammosidan qochamiz.
+// Prod muhitida to'g'ridan-to'g'ri backendga murojaat qilamiz.
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? ''   // proxy: /backend/api/... → next.config.ts rewrites → backend
+    : 'https://wedding-backend-8.onrender.com');
+
+// Dev proxy prefix: /backend/api/auth/login → rewrites → https://...onrender.com/api/auth/login
+const PROXY_PREFIX =
+  typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? '/backend'
+    : '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,9 +21,14 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor — proxy prefix + auth token
 api.interceptors.request.use(
   (config) => {
+    // Dev muhitida /backend prefiksini qo'shamiz (CORS workaround)
+    if (PROXY_PREFIX && config.url && !config.url.startsWith('http') && !config.url.startsWith('/backend')) {
+      config.url = PROXY_PREFIX + config.url;
+    }
+    // Auth token
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (token) {
@@ -33,7 +50,10 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refreshToken });
+          const refreshUrl = PROXY_PREFIX
+            ? `${PROXY_PREFIX}/api/auth/refresh`
+            : `${API_BASE_URL}/api/auth/refresh`;
+          const res = await axios.post(refreshUrl, { refreshToken });
           const { token, refreshToken: newRefresh } = res.data.data;
           localStorage.setItem('token', token);
           localStorage.setItem('refreshToken', newRefresh);
