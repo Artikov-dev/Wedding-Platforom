@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import api from '@/lib/api';
+import { authService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 
 export default function ForgotPasswordPage() {
@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     if (!email) { showToast('Email kiriting', 'error'); return; }
     setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password', { email });
+      await authService.forgotPassword(email);
       showToast('Tasdiqlash kodi emailga yuborildi!');
       setStep('reset');
     } catch (err: unknown) {
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       // Backend accepts: { email, code, newPassword }
-      await api.post('/api/auth/reset-password', { email, code: otp, newPassword });
+      await authService.resetPassword(email, otp, newPassword);
       showToast('Parol muvaffaqiyatli yangilandi!');
       setStep('done');
     } catch (err: unknown) {

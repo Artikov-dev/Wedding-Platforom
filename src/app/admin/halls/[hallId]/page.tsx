@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import Calendar from '@/components/shared/Calendar';
 import Modal from '@/components/ui/Modal';
-import api from '@/lib/api';
+import { hallsService, bookingsService, adminService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Hall, Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
@@ -18,14 +18,14 @@ export default function AdminHallDetailPage({ params }: { params: Promise<{ hall
 
   useEffect(() => {
     Promise.all([
-      api.get(`/api/halls/${hallId}`).then(r => setHall(r.data.data)).catch(() => {}),
-      api.get('/api/bookings').then(r => setBookings(Array.isArray(r.data.data) ? r.data.data : [])).catch(() => {}),
+      hallsService.getById(hallId).then(r => setHall(r.data.data)).catch(() => {}),
+      bookingsService.list().then(r => setBookings(r.data.data?.bookings || [])).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, [hallId]);
 
   const approveHall = async () => {
     try {
-      await api.put(`/api/halls/${hallId}`, { approvalStatus: 'APPROVED' });
+      await adminService.approveHall(hallId, 'APPROVED');
       showToast('Tasdiqlandi!');
       setHall(prev => prev ? { ...prev, approvalStatus: 'APPROVED', status: 'APPROVED' } : prev);
     } catch { showToast('Xatolik', 'error'); }

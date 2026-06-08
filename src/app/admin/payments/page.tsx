@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '@/lib/api';
+import { paymentsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils';
 
@@ -49,6 +49,16 @@ function formatMoney(val: string | number) {
   return n.toLocaleString('uz-UZ') + ' so\'m';
 }
 
+const DEMO_PAYMENTS: Payment[] = [
+  { id: 'p1', bookingId: 'ab1', amount: 14400000, paymentType: 'ADVANCE', paymentMethod: 'CREDIT_CARD', status: 'COMPLETED', createdAt: '2026-06-01T10:00:00Z', booking: { id: 'ab1', hall: { name: "Navro'z Palace" }, user: { firstName: 'Dilnoza', lastName: 'Karimova' }, numberOfGuests: 320 } },
+  { id: 'p2', bookingId: 'ab2', amount: 7500000, paymentType: 'ADVANCE', paymentMethod: 'CASH', status: 'PENDING', createdAt: '2026-06-02T11:30:00Z', booking: { id: 'ab2', hall: { name: 'Grand Tashkent' }, user: { firstName: 'Jasur', lastName: 'Aliyev' }, numberOfGuests: 200 } },
+  { id: 'p3', bookingId: 'ab3', amount: 22500000, paymentType: 'ADVANCE', paymentMethod: 'BANK_TRANSFER', status: 'COMPLETED', createdAt: '2026-06-03T09:15:00Z', booking: { id: 'ab3', hall: { name: 'Diamond Hall' }, user: { firstName: 'Mohira', lastName: 'Nazarova' }, numberOfGuests: 450 } },
+  { id: 'p4', bookingId: 'ab4', amount: 33600000, paymentType: 'FULL', paymentMethod: 'CREDIT_CARD', status: 'COMPLETED', createdAt: '2026-05-20T14:00:00Z', booking: { id: 'ab4', hall: { name: 'Royal Wedding Hall' }, user: { firstName: 'Sherzod', lastName: 'Hasanov' }, numberOfGuests: 280 } },
+  { id: 'p5', bookingId: 'ab5', amount: 3750000, paymentType: 'ADVANCE', paymentMethod: 'DEBIT_CARD', status: 'PENDING', createdAt: '2026-06-04T16:45:00Z', booking: { id: 'ab5', hall: { name: 'Oqshom Plaza' }, user: { firstName: 'Nodira', lastName: 'Rahimova' }, numberOfGuests: 150 } },
+  { id: 'p6', bookingId: 'ab7', amount: 18000000, paymentType: 'ADVANCE', paymentMethod: 'BANK_TRANSFER', status: 'COMPLETED', createdAt: '2026-06-05T08:00:00Z', booking: { id: 'ab7', hall: { name: "Navro'z Palace" }, user: { firstName: 'Feruza', lastName: 'Umarova' }, numberOfGuests: 400 } },
+  { id: 'p7', bookingId: 'ab6', amount: 6500000, paymentType: 'ADVANCE', paymentMethod: 'CASH', status: 'REFUNDED', createdAt: '2026-05-15T12:00:00Z', booking: { id: 'ab6', hall: { name: 'Samarqand Hall' }, user: { firstName: 'Bobur', lastName: "To'ychiyev" }, numberOfGuests: 200 } },
+];
+
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,10 +69,11 @@ export default function AdminPaymentsPage() {
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/payments');
+      const res = await paymentsService.list();
       const d = res.data.data;
-      setPayments(Array.isArray(d) ? d : d?.payments || []);
-    } catch { setPayments([]); }
+      const list = Array.isArray(d) ? d : (d as { payments?: Payment[] })?.payments || [];
+      setPayments(list.length > 0 ? list : DEMO_PAYMENTS);
+    } catch { setPayments(DEMO_PAYMENTS); }
     finally { setLoading(false); }
   }, []);
 

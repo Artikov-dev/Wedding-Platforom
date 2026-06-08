@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
-import api from '@/lib/api';
+import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { Hall } from '@/types';
@@ -29,10 +29,8 @@ export default function MyHallPage() {
     setLoading(true);
     try {
       // /api/halls/owner returns 401 — use /api/halls/search and filter by userId
-      const res = await api.get('/api/halls/search', { params: { limit: 100 } });
-      const d = res.data.data;
-      const allHalls: Hall[] = Array.isArray(d) ? d : d?.halls || [];
-      // Filter by current user's id (userId field on hall)
+      const res = await hallsService.search({ limit: 100, ownerId: user?.id });
+      const allHalls: Hall[] = res.data.data?.halls || [];
       const myHalls = user?.id
         ? allHalls.filter(h => h.userId === user.id || h.ownerId === user.id)
         : allHalls;
@@ -68,7 +66,7 @@ export default function MyHallPage() {
     }
     setSaving(true);
     try {
-      await api.put(`/api/halls/${editHall.id}`, {
+      await hallsService.update(editHall.id, {
         name: editForm.name,
         description: editForm.description || undefined,
         category: editForm.category || undefined,
@@ -92,7 +90,7 @@ export default function MyHallPage() {
     if (!deleteId) return;
     setSaving(true);
     try {
-      await api.delete(`/api/halls/${deleteId}`);
+      await hallsService.delete(deleteId);
       showToast("To'yxona o'chirildi");
       setDeleteId(null);
       fetchHalls();

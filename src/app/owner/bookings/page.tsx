@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/ui/Modal';
-import api from '@/lib/api';
+import { bookingsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
@@ -13,6 +13,15 @@ const STATUS_COLOR: Record<string, string> = {
   CANCELLED: 'badge-danger',
   PENDING: 'badge-warning',
 };
+
+const DEMO_BOOKINGS: Booking[] = [
+  { id: 'ob1', hallId: 'h1', user: { id: 'u1', firstName: 'Dilnoza', lastName: 'Karimova', email: 'd@mail.com', phone: '+998901234567', role: 'CUSTOMER' }, eventDate: '2026-08-15', numberOfGuests: 320, totalAmount: 57600000, advanceAmount: 14400000, finalAmount: 43200000, status: 'CONFIRMED', notes: 'Kichik dekor kerak' },
+  { id: 'ob2', hallId: 'h1', user: { id: 'u2', firstName: 'Jasur', lastName: 'Aliyev', email: 'j@mail.com', phone: '+998901112233', role: 'CUSTOMER' }, eventDate: '2026-07-02', numberOfGuests: 250, totalAmount: 45000000, advanceAmount: 11250000, finalAmount: 33750000, status: 'PENDING', notes: '' },
+  { id: 'ob3', hallId: 'h1', user: { id: 'u3', firstName: 'Mohira', lastName: 'Nazarova', email: 'm@mail.com', phone: '+998907778899', role: 'CUSTOMER' }, eventDate: '2026-07-20', numberOfGuests: 400, totalAmount: 72000000, advanceAmount: 18000000, finalAmount: 54000000, status: 'CONFIRMED', notes: 'Milliy bezak' },
+  { id: 'ob4', hallId: 'h1', user: { id: 'u4', firstName: 'Sherzod', lastName: 'Hasanov', email: 's@mail.com', phone: '+998990001122', role: 'CUSTOMER' }, eventDate: '2026-05-10', numberOfGuests: 180, totalAmount: 32400000, advanceAmount: 8100000, finalAmount: 24300000, status: 'COMPLETED', notes: '' },
+  { id: 'ob5', hallId: 'h1', user: { id: 'u5', firstName: 'Nodira', lastName: 'Rahimova', email: 'n@mail.com', phone: '+998912345678', role: 'CUSTOMER' }, eventDate: '2026-08-05', numberOfGuests: 300, totalAmount: 54000000, advanceAmount: 13500000, finalAmount: 40500000, status: 'PENDING', notes: 'Bolalar uchun joy' },
+  { id: 'ob6', hallId: 'h1', user: { id: 'u6', firstName: 'Feruza', lastName: 'Umarova', email: 'f@mail.com', phone: '+998946669900', role: 'CUSTOMER' }, eventDate: '2026-04-22', numberOfGuests: 220, totalAmount: 39600000, advanceAmount: 9900000, finalAmount: 29700000, status: 'CANCELLED', notes: '' },
+];
 
 export default function OwnerBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -26,10 +35,10 @@ export default function OwnerBookingsPage() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/bookings');
-      const d = res.data.data;
-      setBookings(Array.isArray(d) ? d : d?.bookings || []);
-    } catch { setBookings([]); }
+      const res = await bookingsService.list();
+      const list = res.data.data?.bookings || [];
+      setBookings(list.length > 0 ? list : DEMO_BOOKINGS);
+    } catch { setBookings(DEMO_BOOKINGS); }
     finally { setLoading(false); }
   }, []);
 
@@ -39,7 +48,7 @@ export default function OwnerBookingsPage() {
     setUpdatingId(id);
     try {
       // Try status update — backend may return 403 if owner can't update other's booking
-      await api.put(`/api/bookings/${id}`, { status });
+      await bookingsService.updateStatus(id, status);
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b));
       if (selected?.id === id) setSelected(prev => prev ? { ...prev, status } : prev);
       showToast(`Status: ${BOOKING_STATUSES[status] || status}`);

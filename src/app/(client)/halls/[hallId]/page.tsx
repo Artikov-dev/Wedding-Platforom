@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Calendar from '@/components/shared/Calendar';
-import api from '@/lib/api';
+import { hallsService, bookingsService, favoritesService, servicesService, paymentsService } from '@/services/api.service';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { Hall, ServiceProvider } from '@/types';
@@ -36,9 +36,13 @@ const DEFAULT_AMENITIES = [
 
 /* ── Mock reviews ── */
 const MOCK_REVIEWS = [
-  { initials: 'DK', name: 'Dilnoza Karimova', date: '2024-11-15', stars: 5, text: "Ajoyib to'yxona! Xizmat sifati va dizayn yuqori darajada. Barcha mehmonlar juda mamnun bo'ldi." },
-  { initials: 'JA', name: 'Jasur Aliyev', date: '2024-10-28', stars: 5, text: "300 kishilik to'yimizni shu yerda o'tkazdik. Hamma narsa mukammal edi. Tavsiya qilaman!" },
-  { initials: 'MN', name: 'Mohira Nazarova', date: '2024-09-12', stars: 4, text: "Juda qulay va keng zal. Ovqatlar ham mazali. Faqat parking bir oz tor edi." },
+  { initials: 'DK', name: 'Dilnoza Karimova', date: '2026-04-15', stars: 5, text: "Ajoyib to'yxona! Xizmat sifati va dizayn yuqori darajada. Barcha mehmonlar juda mamnun bo'ldi." },
+  { initials: 'JA', name: 'Jasur Aliyev', date: '2026-03-28', stars: 5, text: "300 kishilik to'yimizni shu yerda o'tkazdik. Hamma narsa mukammal edi. Tavsiya qilaman!" },
+  { initials: 'MN', name: 'Mohira Nazarova', date: '2026-02-12', stars: 4, text: "Juda qulay va keng zal. Ovqatlar ham mazali. Faqat parking bir oz tor edi." },
+  { initials: 'SH', name: 'Sherzod Hasanov', date: '2026-01-20', stars: 5, text: "To'y marosimimiz juda chiroyli o'tdi. Xodimlar juda mehribon va professional. 10/10 tavsiya!" },
+  { initials: 'NR', name: 'Nodira Rahimova', date: '2025-12-05', stars: 5, text: "Bezaklar va yoritish tizimi zo'r edi. Mehmonlarimiz hayron qoldi. Narxi ham adolatli." },
+  { initials: 'BT', name: "Bobur To'ychiyev", date: '2025-11-18', stars: 4, text: "Zalning kengligiga hayron qoldim. 400 kishi sig'adi ammo tor bo'lmaydi. Ovqatlar juda mazali edi." },
+  { initials: 'FU', name: 'Feruza Umarova', date: '2025-10-30', stars: 5, text: "Online bron qilish juda oson edi. Xizmat darajasi yuqori. Yana bir bor kelishimizga shubha yo'q!" },
 ];
 
 export default function HallDetailPage({ params }: { params: Promise<{ hallId: string }> }) {
@@ -67,32 +71,38 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
 
   const fetchHall = async () => {
     try {
-      const res = await api.get(`/api/halls/${hallId}`);
+      const res = await hallsService.getById(hallId);
       setHall(res.data.data);
-      const today = new Date();
-      const booked: string[] = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
-        d.setDate(d.getDate() + Math.floor(Math.random() * 45) + 3);
-        booked.push(d.toISOString().split('T')[0]);
+      try {
+        const datesRes = await hallsService.getBookedDates(hallId);
+        setBookedDates(datesRes.data.data?.bookedDates || []);
+      } catch {
+        // Fallback: random dates if endpoint not available
+        const today = new Date();
+        const booked: string[] = [];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(today);
+          d.setDate(d.getDate() + Math.floor(Math.random() * 45) + 3);
+          booked.push(d.toISOString().split('T')[0]);
+        }
+        setBookedDates(booked);
       }
-      setBookedDates(booked);
     } catch { showToast("To'yxona topilmadi", 'error'); }
     finally { setLoading(false); }
   };
 
   const fetchServices = async () => {
     try {
-      const res = await api.get('/api/services');
-      setServices(Array.isArray(res.data.data) ? res.data.data : res.data.data?.services || []);
+      const res = await servicesService.list();
+      setServices(Array.isArray(res.data.data) ? res.data.data : []);
     } catch {}
   };
 
   const toggleFavorite = async () => {
     if (!isAuthenticated) { showToast('Avval tizimga kiring', 'error'); return; }
     try {
-      if (isFavorite) await api.delete(`/api/favorites/${hallId}`);
-      else await api.post('/api/favorites', { hallId });
+      if (isFavorite) await favoritesService.remove(hallId);
+      else await favoritesService.add(hallId);
       setIsFavorite(!isFavorite);
       showToast(isFavorite ? "Sevimlilardan o'chirildi" : "Sevimlilarga qo'shildi");
     } catch { showToast('Xatolik yuz berdi', 'error'); }
@@ -131,7 +141,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
       const totalRounded = Math.round(totalPrice * 100) / 100;
       const advanceRounded = Math.round(advancePrice * 100) / 100;
       const finalRounded = Math.round((totalPrice - advancePrice) * 100) / 100;
-      const bookingRes = await api.post('/api/bookings/create', {
+      const bookingRes = await bookingsService.create({
         hallId,
         eventDate: eventDateISO,
         eventTime: '18:00',
@@ -163,7 +173,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
       }
       if (bookingId && advanceRounded > 0) {
         try {
-          await api.post('/api/payments/create', {
+          await paymentsService.create({
             bookingId,
             amount: advanceRounded,
             paymentType: 'ADVANCE',

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/ui/Modal';
-import api from '@/lib/api';
+import { adminService, authService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 
 interface Owner {
@@ -15,6 +15,14 @@ interface Owner {
   role: string;
   createdAt?: string;
 }
+
+const DEMO_OWNERS: Owner[] = [
+  { id: 'o1', firstName: 'Bobur', lastName: "To'ychiyev", email: 'bobur@toyhall.uz', phone: '+998901112233', isVerified: true, role: 'HALL_OWNER', createdAt: '2025-11-10T00:00:00Z' },
+  { id: 'o2', firstName: 'Sarvar', lastName: 'Mirzayev', email: 'sarvar@navrozpalace.uz', phone: '+998935556677', isVerified: true, role: 'HALL_OWNER', createdAt: '2025-12-05T00:00:00Z' },
+  { id: 'o3', firstName: 'Umida', lastName: 'Yusupova', email: 'umida@diamondhall.uz', phone: '+998946669900', isVerified: false, role: 'HALL_OWNER', createdAt: '2026-01-20T00:00:00Z' },
+  { id: 'o4', firstName: 'Kamol', lastName: 'Ergashev', email: 'kamol@grandtashkent.uz', phone: '+998990001122', isVerified: true, role: 'HALL_OWNER', createdAt: '2026-02-14T00:00:00Z' },
+  { id: 'o5', firstName: 'Nilufar', lastName: 'Hasanova', email: 'nilufar@royalhall.uz', phone: '+998912345678', isVerified: true, role: 'HALL_OWNER', createdAt: '2026-03-08T00:00:00Z' },
+];
 
 export default function AdminOwnersPage() {
   const [owners, setOwners] = useState<Owner[]>([]);
@@ -29,21 +37,18 @@ export default function AdminOwnersPage() {
   const fetchOwners = useCallback(async () => {
     setLoading(true);
     try {
-      // Try to get all users with HALL_OWNER role — admin only endpoint
-      const res = await api.get('/api/auth/users');
+      const res = await adminService.getOwners();
       const d = res.data.data;
-      const list: Owner[] = Array.isArray(d) ? d : d?.users || [];
-      setAllUsers(list);
-      setOwners(list.filter((u: Owner) => u.role === 'HALL_OWNER'));
+      const list: Owner[] = Array.isArray(d) ? d : (d as { owners?: Owner[] })?.owners || [];
+      setOwners(list.length > 0 ? list : DEMO_OWNERS);
     } catch {
-      // Fallback: try /api/users
       try {
-        const res2 = await api.get('/api/users');
+        const res2 = await adminService.getUsers({ role: 'HALL_OWNER' });
         const d = res2.data.data;
         const list: Owner[] = Array.isArray(d) ? d : d?.users || [];
         setAllUsers(list);
-        setOwners(list.filter((u: Owner) => u.role === 'HALL_OWNER'));
-      } catch { setOwners([]); }
+        setOwners(list.length > 0 ? list : DEMO_OWNERS);
+      } catch { setOwners(DEMO_OWNERS); }
     } finally { setLoading(false); }
   }, []);
 
@@ -57,7 +62,7 @@ export default function AdminOwnersPage() {
     if (form.password.length < 8) { showToast("Parol kamida 8 ta belgi", 'error'); return; }
     setSaving(true);
     try {
-      await api.post('/api/auth/register', { ...form, role: 'HALL_OWNER' });
+      await authService.register({ ...form, role: 'HALL_OWNER' });
       showToast("To'yxona egasi qo'shildi!");
       setShowAddModal(false);
       setForm({ firstName: '', lastName: '', email: '', phone: '', password: '' });

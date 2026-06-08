@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HallCard from '@/components/shared/HallCard';
-import api from '@/lib/api';
+import { hallsService, favoritesService } from '@/services/api.service';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { Hall } from '@/types';
@@ -36,15 +36,11 @@ function HallsContent() {
       if (category) params.category = category;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
-      const res = await api.get('/api/halls/search', { params });
+      const res = await hallsService.search(params);
       const d = res.data.data;
-      // Backend returns { halls: [...], pagination: {...} }
       if (d?.halls) {
         setHalls(d.halls);
         setTotalPages(d.pagination?.pages || Math.ceil((d.pagination?.total || d.halls.length) / 9) || 1);
-      } else if (Array.isArray(d)) {
-        setHalls(d);
-        setTotalPages(Math.ceil(d.length / 9) || 1);
       } else {
         setHalls([]);
       }
@@ -55,10 +51,8 @@ function HallsContent() {
   const fetchFavorites = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      const res = await api.get('/api/favorites');
-      const d = res.data.data;
-      const list = Array.isArray(d) ? d : d?.favorites || [];
-      // Backend returns hall fields directly — item.id is the hallId
+      const res = await favoritesService.list();
+      const list = Array.isArray(res.data.data) ? res.data.data : [];
       setFavoriteIds(new Set(list.map((f: { hallId?: string; id: string }) => f.hallId || f.id)));
     } catch {}
   }, [isAuthenticated]);
@@ -71,11 +65,11 @@ function HallsContent() {
     const isFav = favoriteIds.has(hallId);
     try {
       if (isFav) {
-        await api.delete(`/api/favorites/${hallId}`);
+        await favoritesService.remove(hallId);
         setFavoriteIds(prev => { const s = new Set(prev); s.delete(hallId); return s; });
         showToast("Sevimlilardan o'chirildi");
       } else {
-        await api.post('/api/favorites', { hallId });
+        await favoritesService.add(hallId);
         setFavoriteIds(prev => new Set([...prev, hallId]));
         showToast("Sevimlilarga qo'shildi ❤️");
       }

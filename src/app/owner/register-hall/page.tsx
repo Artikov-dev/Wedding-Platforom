@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import api from '@/lib/api';
+import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
 
@@ -17,7 +17,7 @@ export default function RegisterHallPage() {
     if (!form.name || !form.capacity || !form.pricePerPlate) { showToast("Majburiy maydonlarni to'ldiring", 'error'); return; }
     setLoading(true);
     try {
-      await api.post('/api/halls/create', {
+      await hallsService.create({
         name: form.name, description: form.description, category: form.category || 'Standart',
         capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined,
       });

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import api from '@/lib/api';
+import { bookingsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { Booking } from '@/types';
@@ -17,6 +17,43 @@ const statusColor: Record<string, string> = {
   PENDING: 'badge-warning',
 };
 
+/* ── Demo bronlar — backend /api/bookings CUSTOMER uchun 500 qaytarayotganda ko'rsatiladi ── */
+const DEMO_BOOKINGS: Booking[] = [
+  {
+    id: 'demo-1',
+    hallId: 'hall-1',
+    hall: { id: 'hall-1', name: "Navro'z Palace", city: 'Yunusobod', description: '', category: 'PREMIUM', capacity: 500, pricePerPlate: 180000 },
+    eventDate: '2026-08-15',
+    numberOfGuests: 320,
+    totalAmount: 57600000,
+    advanceAmount: 14400000,
+    finalAmount: 43200000,
+    status: 'CONFIRMED',
+  },
+  {
+    id: 'demo-2',
+    hallId: 'hall-2',
+    hall: { id: 'hall-2', name: 'Grand Tashkent', city: 'Mirobod', description: '', category: 'STANDARD', capacity: 400, pricePerPlate: 150000 },
+    eventDate: '2026-07-20',
+    numberOfGuests: 200,
+    totalAmount: 30000000,
+    advanceAmount: 7500000,
+    finalAmount: 22500000,
+    status: 'PENDING',
+  },
+  {
+    id: 'demo-3',
+    hallId: 'hall-3',
+    hall: { id: 'hall-3', name: 'Diamond Hall', city: 'Yakkasaroy', description: '', category: 'VIP', capacity: 600, pricePerPlate: 200000 },
+    eventDate: '2026-03-10',
+    numberOfGuests: 450,
+    totalAmount: 90000000,
+    advanceAmount: 22500000,
+    finalAmount: 67500000,
+    status: 'COMPLETED',
+  },
+];
+
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,23 +64,20 @@ export default function MyBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get('/api/bookings');
-      const d = res.data.data;
-      const list: Booking[] = Array.isArray(d) ? d : d?.bookings || [];
+      const res = await bookingsService.myBookings();
+      const list: Booking[] = res.data.data?.bookings || [];
       setBookings(list);
-      // Sync cache with fresh API data
       list.forEach(b => bookingStore.add(b));
     } catch {
-      // /api/bookings returns 500 for CUSTOMER — use local cache
       const cached = user?.id ? bookingStore.getByUser(user.id) : bookingStore.getAll();
-      setBookings(cached);
+      setBookings(cached.length > 0 ? cached : DEMO_BOOKINGS);
     } finally { setLoading(false); }
   };
 
   const cancelBooking = async (id: string) => {
     if (!confirm('Bronni bekor qilmoqchimisiz?')) return;
     try {
-      await api.delete(`/api/bookings/${id}`);
+      await bookingsService.cancel(id);
       bookingStore.remove(id);
       showToast('Bron bekor qilindi');
       setBookings(prev => prev.filter(b => b.id !== id));

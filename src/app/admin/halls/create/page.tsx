@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import api from '@/lib/api';
+import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ export default function AdminCreateHallPage() {
     if (!form.name || !form.capacity || !form.pricePerPlate) { showToast("Majburiy maydonlarni to'ldiring", 'error'); return; }
     setLoading(true);
     try {
-      await api.post('/api/halls/create', {
+      await hallsService.create({
         name: form.name, description: form.description, category: form.category || 'Standart',
         capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined,
       });
@@ -60,7 +60,7 @@ export default function AdminCreateHallPage() {
           <div className="form-group"><label className="form-label">Rasm URL</label><input className="form-input" placeholder="https://..." value={form.imageUrl} onChange={e => update('imageUrl', e.target.value)} /></div>
 
           {/* Qo'shimcha xizmatlar */}
-          <h3 style={{ marginTop: 'var(--space-2xl)', marginBottom: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--color-border)' }}>
+          <h3 style={{ marginTop: 'var(--space-2xl)', marginBottom: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--border)' }}>
             Qo&apos;shimcha xizmatlar
           </h3>
 

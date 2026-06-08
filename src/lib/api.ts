@@ -1,18 +1,11 @@
 import axios from 'axios';
 
-// Dev muhitida Next.js proxy orqali (/backend/*) CORS muammosidan qochamiz.
-// Prod muhitida to'g'ridan-to'g'ri backendga murojaat qilamiz.
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? ''   // proxy: /backend/api/... → next.config.ts rewrites → backend
-    : 'https://wedding-backend-8.onrender.com');
+// Barcha muhitlarda Next.js proxy orqali so'rov yuboramiz (CORS muammosidan qochish uchun).
+// /backend/api/... → next.config.ts rewrites → https://wedding-backend-8.onrender.com/api/...
+const API_BASE_URL = '';
 
-// Dev proxy prefix: /backend/api/auth/login → rewrites → https://...onrender.com/api/auth/login
-const PROXY_PREFIX =
-  typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? '/backend'
-    : '';
+// Proxy prefix: har doim /backend prefiksini ishlatamiz
+const PROXY_PREFIX = '/backend';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -74,6 +67,15 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// Render free tier uyquga ketmasligi uchun — har 9 daqiqada bir ping
+if (typeof window !== 'undefined') {
+  const PING_URL = '/backend/api/halls/search?limit=1';
+  const PING_INTERVAL = 9 * 60 * 1000; // 9 daqiqa
+  const ping = () => fetch(PING_URL, { method: 'GET' }).catch(() => {});
+  ping(); // sahifa ochilganda darhol bir marta
+  setInterval(ping, PING_INTERVAL);
+}
 
 // Token helpers
 export const getToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;

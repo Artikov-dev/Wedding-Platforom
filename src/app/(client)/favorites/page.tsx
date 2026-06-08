@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HallCard from '@/components/shared/HallCard';
-import api from '@/lib/api';
+import { favoritesService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { Favorite } from '@/types';
@@ -19,9 +19,9 @@ export default function FavoritesPage() {
 
   const fetchFavorites = async () => {
     try {
-      const res = await api.get('/api/favorites');
+      const res = await favoritesService.list();
       const d = res.data.data;
-      const list = Array.isArray(d) ? d : d?.favorites || [];
+      const list = Array.isArray(d) ? d : [];
       // Backend returns hall fields directly (not nested under .hall)
       // Normalize: if item has 'name' but no 'hall', wrap it
       const normalized = list.map((item: Record<string, unknown>) => {
@@ -38,7 +38,7 @@ export default function FavoritesPage() {
 
   const removeFavorite = async (hallId: string) => {
     try {
-      await api.delete(`/api/favorites/${hallId}`);
+      await favoritesService.remove(hallId);
       showToast("Sevimlilardan o'chirildi");
       setFavorites(prev => prev.filter(f => (f.hallId || f.id) !== hallId));
     } catch { showToast('Xatolik yuz berdi', 'error'); }

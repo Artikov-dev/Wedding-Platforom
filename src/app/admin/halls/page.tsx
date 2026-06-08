@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
-import api from '@/lib/api';
+import { hallsService, adminService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Hall } from '@/types';
 import { formatPrice, DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
@@ -25,9 +25,8 @@ export default function AdminHallsPage() {
   const fetchHalls = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/halls/search', { params: { limit: 100 } });
-      const d = res.data.data;
-      setHalls(Array.isArray(d) ? d : d?.halls || []);
+      const res = await hallsService.search({ limit: 100 });
+      setHalls(res.data.data?.halls || []);
     } catch { setHalls([]); }
     finally { setLoading(false); }
   }, []);
@@ -38,7 +37,7 @@ export default function AdminHallsPage() {
 
   const approveHall = async (id: string) => {
     try {
-      await api.put(`/api/halls/${id}`, { approvalStatus: 'APPROVED' });
+      await adminService.approveHall(id, 'APPROVED');
       setHalls(prev => prev.map(h => h.id === id ? { ...h, approvalStatus: 'APPROVED', status: 'APPROVED' } : h));
       showToast('Tasdiqlandi!');
     } catch { showToast('Xatolik', 'error'); }
@@ -47,7 +46,7 @@ export default function AdminHallsPage() {
   const deleteHall = async (id: string) => {
     if (!confirm("O'chirishni tasdiqlaysizmi?")) return;
     try {
-      await api.delete(`/api/halls/${id}`);
+      await hallsService.delete(id);
       setHalls(prev => prev.filter(h => h.id !== id));
       showToast("O'chirildi");
     } catch { showToast('Xatolik', 'error'); }
@@ -72,7 +71,7 @@ export default function AdminHallsPage() {
     if (!editHall) return;
     setSaving(true);
     try {
-      await api.put(`/api/halls/${editHall.id}`, {
+      await hallsService.update(editHall.id, {
         name: editForm.name,
         description: editForm.description || undefined,
         category: editForm.category || undefined,

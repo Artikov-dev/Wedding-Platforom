@@ -100,7 +100,7 @@ export default function Calendar({ bookedDates = [], selectedDate, onSelectDate,
           );
         })}
       </div>
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(74,139,92,0.2)', display: 'inline-block' }} /> Bo&apos;sh
         </span>
@@ -108,7 +108,7 @@ export default function Calendar({ bookedDates = [], selectedDate, onSelectDate,
           <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(184,58,58,0.15)', display: 'inline-block' }} /> Bron qilingan
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--color-border)', display: 'inline-block' }} /> O&apos;tgan
+          <span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--border)', display: 'inline-block' }} /> O&apos;tgan
         </span>
       </div>
     </div>

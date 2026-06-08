@@ -21,10 +21,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <Sidebar type="admin" />
       <main className="dashboard-main">
         <div className="dashboard-header">
-          <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--color-burgundy)' }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--burgundy)' }}>
             Admin Panel
           </h3>
-          <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+          <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
             {user.firstName} {user.lastName}
           </span>
         </div>

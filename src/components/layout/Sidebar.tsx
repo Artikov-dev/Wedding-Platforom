@@ -63,7 +63,7 @@ export default function Sidebar({ type }: { type: 'admin' | 'owner' }) {
         <Link href={type === 'admin' ? '/admin/dashboard' : '/owner/dashboard'}>
           <h2>{type === 'admin' ? 'Admin Panel' : "To'yxona Egasi"}</h2>
         </Link>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
           {user?.firstName} {user?.lastName}
         </p>
       </div>
@@ -84,7 +84,7 @@ export default function Sidebar({ type }: { type: 'admin' | 'owner' }) {
           </div>
         ))}
       </nav>
-      <div style={{ padding: 'var(--space-md)', borderTop: '1px solid var(--color-border-light)' }}>
+      <div style={{ padding: 'var(--space-md)', borderTop: '1px solid var(--border-light)' }}>
         <Link href="/" className="sidebar-link">
           <span>🌐</span> Saytga o&apos;tish
         </Link>

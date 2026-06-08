@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Hall } from '@/types';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
@@ -14,9 +14,8 @@ export default function EditHallPage() {
   const { showToast } = useToast();
 
   useEffect(() => {
-    api.get('/api/halls/search').then(r => {
-      const d = r.data.data;
-      const halls = Array.isArray(d) ? d : d?.halls || [];
+    hallsService.search({ limit: 100 }).then(r => {
+      const halls = r.data.data?.halls || [];
       if (halls[0]) {
         const h = halls[0];
         setHall(h);
@@ -32,7 +31,7 @@ export default function EditHallPage() {
     if (!hall) return;
     setSaving(true);
     try {
-      await api.put(`/api/halls/${hall.id}`, { name: form.name, description: form.description, category: form.category, capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined });
+      await hallsService.update(hall.id, { name: form.name, description: form.description, category: form.category, capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined });
       showToast("Ma'lumotlar yangilandi!");
     } catch { showToast('Xatolik yuz berdi', 'error'); }
     finally { setSaving(false); }

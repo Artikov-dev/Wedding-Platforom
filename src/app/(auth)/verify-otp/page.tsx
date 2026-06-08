@@ -3,7 +3,7 @@
 import React, { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/api';
+import { authService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 
 function VerifyOTPContent() {
@@ -46,7 +46,7 @@ function VerifyOTPContent() {
     if (code.length < 6) { showToast("6 ta raqam kiriting", 'error'); return; }
     setLoading(true);
     try {
-      await api.post('/api/auth/verify-otp', { email, code });
+      await authService.verifyOtp(email, code);
       setSuccess(true);
       showToast('Email tasdiqlandi!');
       setTimeout(() => { window.location.href = '/login'; }, 2000);
