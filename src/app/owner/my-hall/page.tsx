@@ -28,13 +28,18 @@ export default function MyHallPage() {
   const fetchHalls = useCallback(async () => {
     setLoading(true);
     try {
-      // /api/halls/owner returns 401 — use /api/halls/search and filter by userId
-      const res = await hallsService.search({ limit: 100, ownerId: user?.id });
-      const allHalls: Hall[] = res.data.data?.halls || [];
-      const myHalls = user?.id
-        ? allHalls.filter(h => h.userId === user.id || h.ownerId === user.id)
-        : allHalls;
-      setHalls(myHalls);
+      // Try /api/halls/owner first (auth required), fallback to search with ownerId
+      let halls: Hall[] = [];
+      try {
+        const res = await hallsService.ownerHalls({ limit: 100 });
+        halls = res.data.data?.halls || [];
+      } catch {
+        if (user?.id) {
+          const res = await hallsService.search({ limit: 100, ownerId: user.id });
+          halls = res.data.data?.halls || [];
+        }
+      }
+      setHalls(halls);
     } catch { setHalls([]); }
     finally { setLoading(false); }
   }, [user?.id]);

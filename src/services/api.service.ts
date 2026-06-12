@@ -95,6 +95,9 @@ export const hallsService = {
   search: (params?: HallSearchParams) =>
     api.get<ApiResponse<{ halls: Hall[]; pagination: Pagination }>>('/api/halls/search', { params }),
 
+  ownerHalls: (params?: { page?: number; limit?: number }) =>
+    api.get<ApiResponse<{ halls: Hall[]; pagination: Pagination }>>('/api/halls/owner', { params }),
+
   getById: (hallId: string) =>
     api.get<ApiResponse<Hall>>(`/api/halls/${hallId}`),
 

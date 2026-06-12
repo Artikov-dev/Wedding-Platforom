@@ -43,20 +43,20 @@ const MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen',
 
 /* ── Demo data — API ishlamayotganda dashboard bo'sh qolmasligi uchun ── */
 const DEMO_HALLS: Hall[] = [
-  { id: 'd1', name: "Navro'z Palace", category: 'PREMIUM', capacity: 500, pricePerPlate: 180000, city: 'Toshkent', status: 'APPROVED', description: '' },
-  { id: 'd2', name: 'Grand Tashkent', category: 'STANDARD', capacity: 400, pricePerPlate: 150000, city: 'Toshkent', status: 'APPROVED', description: '' },
-  { id: 'd3', name: 'Diamond Hall', category: 'VIP', capacity: 600, pricePerPlate: 200000, city: 'Toshkent', status: 'APPROVED', description: '' },
-  { id: 'd4', name: 'Royal Wedding Hall', category: 'STANDARD', capacity: 350, pricePerPlate: 120000, city: 'Toshkent', status: 'PENDING', description: '' },
-  { id: 'd5', name: 'Oqshom Plaza', category: 'ECONOMY', capacity: 250, pricePerPlate: 100000, city: 'Toshkent', status: 'APPROVED', description: '' },
-  { id: 'd6', name: 'Samarqand Hall', category: 'STANDARD', capacity: 300, pricePerPlate: 130000, city: 'Toshkent', status: 'PENDING', description: '' },
+  { id: 'd1', name: 'Visol to\'yxonasi', category: 'PREMIUM', capacity: 500, pricePerPlate: 200000, city: 'Yunusobod', status: 'APPROVED', description: '' },
+  { id: 'd2', name: 'Guliston saroyi', category: 'STANDARD', capacity: 400, pricePerPlate: 150000, city: 'Chilonzor', status: 'APPROVED', description: '' },
+  { id: 'd3', name: 'Sharq to\'yxonasi', category: 'VIP', capacity: 700, pricePerPlate: 280000, city: 'Mirobod', status: 'APPROVED', description: '' },
+  { id: 'd4', name: 'Bahor saroyi', category: 'STANDARD', capacity: 350, pricePerPlate: 140000, city: 'Olmazor', status: 'PENDING', description: '' },
+  { id: 'd5', name: 'Hilol to\'yxonasi', category: 'ECONOMY', capacity: 250, pricePerPlate: 110000, city: 'Sergeli', status: 'APPROVED', description: '' },
+  { id: 'd6', name: 'Nargiza saroyi', category: 'STANDARD', capacity: 300, pricePerPlate: 130000, city: 'Uchtepa', status: 'PENDING', description: '' },
 ];
 const DEMO_BOOKINGS: Booking[] = [
-  { id: 'db1', hallId: 'd1', hall: DEMO_HALLS[0], eventDate: '2026-06-15', numberOfGuests: 320, totalAmount: 57600000, advanceAmount: 14400000, finalAmount: 43200000, status: 'CONFIRMED' },
+  { id: 'db1', hallId: 'd1', hall: DEMO_HALLS[0], eventDate: '2026-06-15', numberOfGuests: 320, totalAmount: 64000000, advanceAmount: 16000000, finalAmount: 48000000, status: 'CONFIRMED' },
   { id: 'db2', hallId: 'd2', hall: DEMO_HALLS[1], eventDate: '2026-06-07', numberOfGuests: 200, totalAmount: 30000000, advanceAmount: 7500000, finalAmount: 22500000, status: 'PENDING' },
-  { id: 'db3', hallId: 'd3', hall: DEMO_HALLS[2], eventDate: '2026-06-22', numberOfGuests: 450, totalAmount: 90000000, advanceAmount: 22500000, finalAmount: 67500000, status: 'CONFIRMED' },
-  { id: 'db4', hallId: 'd4', hall: DEMO_HALLS[3], eventDate: '2026-05-18', numberOfGuests: 280, totalAmount: 33600000, advanceAmount: 8400000, finalAmount: 25200000, status: 'COMPLETED' },
-  { id: 'db5', hallId: 'd5', hall: DEMO_HALLS[4], eventDate: '2026-07-10', numberOfGuests: 150, totalAmount: 15000000, advanceAmount: 3750000, finalAmount: 11250000, status: 'CONFIRMED' },
-  { id: 'db6', hallId: 'd6', hall: DEMO_HALLS[5], eventDate: '2026-06-07', numberOfGuests: 200, totalAmount: 26000000, advanceAmount: 6500000, finalAmount: 19500000, status: 'CANCELLED' },
+  { id: 'db3', hallId: 'd3', hall: DEMO_HALLS[2], eventDate: '2026-06-22', numberOfGuests: 450, totalAmount: 126000000, advanceAmount: 31500000, finalAmount: 94500000, status: 'CONFIRMED' },
+  { id: 'db4', hallId: 'd4', hall: DEMO_HALLS[3], eventDate: '2026-05-18', numberOfGuests: 280, totalAmount: 39200000, advanceAmount: 9800000, finalAmount: 29400000, status: 'COMPLETED' },
+  { id: 'db5', hallId: 'd5', hall: DEMO_HALLS[4], eventDate: '2026-07-10', numberOfGuests: 180, totalAmount: 19800000, advanceAmount: 4950000, finalAmount: 14850000, status: 'CONFIRMED' },
+  { id: 'db6', hallId: 'd6', hall: DEMO_HALLS[5], eventDate: '2026-06-07', numberOfGuests: 250, totalAmount: 32500000, advanceAmount: 8125000, finalAmount: 24375000, status: 'CANCELLED' },
 ];
 
 export default function AdminDashboard() {
@@ -272,7 +272,7 @@ export default function AdminDashboard() {
                 {bookings.slice(0, 6).map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 600, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {b.hallId ? '🏛️ Hall' : '—'}
+                      {b.hall?.name || '—'}
                     </td>
                     <td style={{ fontSize: '0.85rem' }}>{formatDate(b.eventDate)}</td>
                     <td>{b.numberOfGuests}</td>

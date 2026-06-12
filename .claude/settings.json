@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/seed-halls.mjs)",
+      "Bash(node -e ' *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\artik\\OneDrive\\Desktop\\backend-for-booking\\scripts"
+    ]
+  }
+}

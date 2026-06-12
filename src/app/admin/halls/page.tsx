@@ -25,9 +25,16 @@ export default function AdminHallsPage() {
   const fetchHalls = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await hallsService.search({ limit: 100 });
+      // Admin: use admin endpoint to see ALL halls including pending
+      const res = await adminService.getAllHalls({ limit: 100 });
       setHalls(res.data.data?.halls || []);
-    } catch { setHalls([]); }
+    } catch {
+      // Fallback to public search
+      try {
+        const res = await hallsService.search({ limit: 100 });
+        setHalls(res.data.data?.halls || []);
+      } catch { setHalls([]); }
+    }
     finally { setLoading(false); }
   }, []);
 
