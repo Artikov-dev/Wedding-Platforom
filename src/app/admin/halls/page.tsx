@@ -257,7 +257,7 @@ export default function AdminHallsPage() {
               <label className="form-label">Kategoriya</label>
               <select className="form-select" value={editForm.category} onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}>
                 <option value="">Tanlang</option>
-                {HALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {HALL_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div className="form-group">

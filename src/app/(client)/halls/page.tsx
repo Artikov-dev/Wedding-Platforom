@@ -121,7 +121,7 @@ function HallsContent() {
                 <label className="form-label">Kategoriya</label>
                 <select className="form-select" value={category} onChange={e => setCategory(e.target.value)}>
                   <option value="">Barchasi</option>
-                  {HALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {HALL_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ flex: 1 }}>

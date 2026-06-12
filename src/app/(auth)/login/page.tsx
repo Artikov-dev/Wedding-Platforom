@@ -49,11 +49,11 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="login-email" className="form-label">Email</label>
-            <input id="login-email" type="email" className="form-input" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+            <input id="login-email" type="email" className="form-input" placeholder="email@example.com" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
           <div className="form-group">
             <label htmlFor="login-password" className="form-label">Parol</label>
-            <input id="login-password" type="password" className="form-input" placeholder="Parolni kiriting" value={password} onChange={e => setPassword(e.target.value)} />
+            <input id="login-password" type="password" className="form-input" placeholder="Parolni kiriting" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} />
           </div>
           <div style={{ textAlign: 'right', marginBottom: 'var(--s-6)' }}>
             <Link href="/forgot-password" style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>Parolni unutdingizmi?</Link>

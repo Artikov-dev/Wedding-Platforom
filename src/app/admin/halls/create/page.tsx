@@ -22,12 +22,25 @@ export default function AdminCreateHallPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.capacity || !form.pricePerPlate) { showToast("Majburiy maydonlarni to'ldiring", 'error'); return; }
+    if (!form.name || !form.capacity || !form.pricePerPlate || !form.category) {
+      showToast("Nomi, kategoriya, sig'im va narx majburiy", 'error'); return;
+    }
+    const capacity = parseInt(form.capacity);
+    const pricePerPlate = parseFloat(form.pricePerPlate);
+    if (isNaN(capacity) || capacity < 1) { showToast("Sig'im to'g'ri son bo'lishi kerak", 'error'); return; }
+    if (isNaN(pricePerPlate) || pricePerPlate < 1) { showToast("Narx to'g'ri son bo'lishi kerak", 'error'); return; }
     setLoading(true);
     try {
       await hallsService.create({
-        name: form.name, description: form.description, category: form.category || 'Standart',
-        capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined,
+        name: form.name,
+        description: form.description || undefined,
+        category: form.category,
+        capacity,
+        pricePerPlate,
+        city: form.city || undefined,
+        address: form.address || undefined,
+        phone: form.phone || undefined,
+        imageUrl: form.imageUrl || undefined,
       });
       showToast("To'yxona qo'shildi!");
       setForm({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
@@ -46,7 +59,7 @@ export default function AdminCreateHallPage() {
           <div className="form-group"><label className="form-label">Nomi *</label><input className="form-input" placeholder="To'yxona nomi" value={form.name} onChange={e => update('name', e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Tavsif</label><textarea className="form-textarea" value={form.description} onChange={e => update('description', e.target.value)} /></div>
           <div className="form-row">
-            <div className="form-group"><label className="form-label">Kategoriya</label><select className="form-select" value={form.category} onChange={e => update('category', e.target.value)}><option value="">Tanlang</option>{HALL_CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Kategoriya</label><select className="form-select" value={form.category} onChange={e => update('category', e.target.value)}><option value="">Tanlang</option>{HALL_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
             <div className="form-group"><label className="form-label">Rayon</label><select className="form-select" value={form.city} onChange={e => update('city', e.target.value)}><option value="">Tanlang</option>{DISTRICTS.map(d => <option key={d}>{d}</option>)}</select></div>
           </div>
           <div className="form-row">

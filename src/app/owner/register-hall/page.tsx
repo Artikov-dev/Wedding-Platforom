@@ -14,12 +14,25 @@ export default function RegisterHallPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.capacity || !form.pricePerPlate) { showToast("Majburiy maydonlarni to'ldiring", 'error'); return; }
+    if (!form.name || !form.capacity || !form.pricePerPlate || !form.category) {
+      showToast("Nomi, kategoriya, sig'im va narx majburiy", 'error'); return;
+    }
+    const capacity = parseInt(form.capacity);
+    const pricePerPlate = parseFloat(form.pricePerPlate);
+    if (isNaN(capacity) || capacity < 1) { showToast("Sig'im to'g'ri son bo'lishi kerak", 'error'); return; }
+    if (isNaN(pricePerPlate) || pricePerPlate < 1) { showToast("Narx to'g'ri son bo'lishi kerak", 'error'); return; }
     setLoading(true);
     try {
       await hallsService.create({
-        name: form.name, description: form.description, category: form.category || 'Standart',
-        capacity: parseInt(form.capacity), pricePerPlate: parseFloat(form.pricePerPlate), imageUrl: form.imageUrl || undefined,
+        name: form.name,
+        description: form.description || undefined,
+        category: form.category,
+        capacity,
+        pricePerPlate,
+        city: form.city || undefined,
+        address: form.address || undefined,
+        phone: form.phone || undefined,
+        imageUrl: form.imageUrl || undefined,
       });
       showToast("To'yxona yuborildi! Admin tasdiqlashini kuting");
       setForm({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
@@ -47,7 +60,7 @@ export default function RegisterHallPage() {
               <label className="form-label">Kategoriya</label>
               <select className="form-select" value={form.category} onChange={e => update('category', e.target.value)}>
                 <option value="">Tanlang</option>
-                {HALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {HALL_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div className="form-group">

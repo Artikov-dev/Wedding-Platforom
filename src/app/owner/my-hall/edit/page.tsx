@@ -48,7 +48,7 @@ export default function EditHallPage() {
           <div className="form-group"><label className="form-label">Nomi</label><input className="form-input" value={form.name} onChange={e => update('name', e.target.value)} /></div>
           <div className="form-group"><label className="form-label">Tavsif</label><textarea className="form-textarea" value={form.description} onChange={e => update('description', e.target.value)} /></div>
           <div className="form-row">
-            <div className="form-group"><label className="form-label">Kategoriya</label><select className="form-select" value={form.category} onChange={e => update('category', e.target.value)}><option value="">Tanlang</option>{HALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Kategoriya</label><select className="form-select" value={form.category} onChange={e => update('category', e.target.value)}><option value="">Tanlang</option>{HALL_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
             <div className="form-group"><label className="form-label">Sig&apos;im</label><input type="number" className="form-input" value={form.capacity} onChange={e => update('capacity', e.target.value)} /></div>
           </div>
           <div className="form-group"><label className="form-label">Narx (so&apos;m/kishi)</label><input type="number" className="form-input" value={form.pricePerPlate} onChange={e => update('pricePerPlate', e.target.value)} /></div>

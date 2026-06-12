@@ -43,11 +43,11 @@ export default function RegisterPage() {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-row">
-            <div className="form-group"><label className="form-label">Ism *</label><input className="form-input" placeholder="Ismingiz" value={form.firstName} onChange={e => update('firstName', e.target.value)} /></div>
-            <div className="form-group"><label className="form-label">Familiya</label><input className="form-input" placeholder="Familiyangiz" value={form.lastName} onChange={e => update('lastName', e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">Ism *</label><input className="form-input" placeholder="Ismingiz" autoComplete="given-name" value={form.firstName} onChange={e => update('firstName', e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">Familiya</label><input className="form-input" placeholder="Familiyangiz" autoComplete="family-name" value={form.lastName} onChange={e => update('lastName', e.target.value)} /></div>
           </div>
-          <div className="form-group"><label htmlFor="register-email" className="form-label">Email *</label><input id="register-email" type="email" className="form-input" placeholder="email@example.com" value={form.email} onChange={e => update('email', e.target.value)} /></div>
-          <div className="form-group"><label htmlFor="register-phone" className="form-label">Telefon *</label><input id="register-phone" className="form-input" placeholder="+998 90 123 45 67" value={form.phone} onChange={e => update('phone', e.target.value)} /></div>
+          <div className="form-group"><label htmlFor="register-email" className="form-label">Email *</label><input id="register-email" type="email" className="form-input" placeholder="email@example.com" autoComplete="email" value={form.email} onChange={e => update('email', e.target.value)} /></div>
+          <div className="form-group"><label htmlFor="register-phone" className="form-label">Telefon *</label><input id="register-phone" className="form-input" placeholder="+998 90 123 45 67" autoComplete="tel" value={form.phone} onChange={e => update('phone', e.target.value)} /></div>
           <div className="form-group">
             <label htmlFor="register-role" className="form-label">Ro&apos;l</label>
             <select id="register-role" className="form-select" value={form.role} onChange={e => update('role', e.target.value)}>
@@ -56,8 +56,8 @@ export default function RegisterPage() {
             </select>
           </div>
           <div className="form-row">
-            <div className="form-group"><label htmlFor="register-password" className="form-label">Parol *</label><input id="register-password" type="password" className="form-input" placeholder="Kamida 8 ta belgi" value={form.password} onChange={e => update('password', e.target.value)} /></div>
-            <div className="form-group"><label htmlFor="register-confirm-password" className="form-label">Parolni tasdiqlang *</label><input id="register-confirm-password" type="password" className="form-input" placeholder="Qayta kiriting" value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)} /></div>
+            <div className="form-group"><label htmlFor="register-password" className="form-label">Parol *</label><input id="register-password" type="password" className="form-input" placeholder="Kamida 8 ta belgi" autoComplete="new-password" value={form.password} onChange={e => update('password', e.target.value)} /></div>
+            <div className="form-group"><label htmlFor="register-confirm-password" className="form-label">Parolni tasdiqlang *</label><input id="register-confirm-password" type="password" className="form-input" placeholder="Qayta kiriting" autoComplete="new-password" value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)} /></div>
           </div>
           <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', borderRadius: 'var(--r-lg)' }} disabled={loading}>
             {loading ? 'Yuklanmoqda...' : "Ro'yxatdan o'tish"}

@@ -33,12 +33,11 @@ export const DISTRICTS: string[] = [
   'Toshkent tumani',
 ];
 
-export const HALL_CATEGORIES: string[] = [
-  'Premium',
-  'Standart',
-  'Ekonom',
-  'VIP',
-  'Ochiq havo',
+export const HALL_CATEGORIES: { value: string; label: string }[] = [
+  { value: 'ECONOMY', label: 'Ekonom' },
+  { value: 'STANDARD', label: 'Standart' },
+  { value: 'PREMIUM', label: 'Premium' },
+  { value: 'VIP', label: 'VIP' },
 ];
 
 export const BOOKING_STATUSES: Record<string, string> = {
