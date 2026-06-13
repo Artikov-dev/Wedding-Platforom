@@ -8,6 +8,17 @@ import { hallsService, adminService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Hall } from '@/types';
 import { formatPrice, DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
+import { 
+  FormatListBulletedOutlined, 
+  GridViewOutlined, 
+  AddOutlined, 
+  VisibilityOutlined, 
+  EditOutlined, 
+  CheckCircleOutlined, 
+  CancelOutlined, 
+  DeleteOutlineOutlined,
+  LocationOnOutlined
+} from '@mui/icons-material';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=70';
 
@@ -20,6 +31,7 @@ export default function AdminHallsPage() {
   const [editHall, setEditHall] = useState<Hall | null>(null);
   const [editForm, setEditForm] = useState({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', imageUrl: '' });
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { showToast } = useToast();
 
   const fetchHalls = useCallback(async () => {
@@ -47,6 +59,15 @@ export default function AdminHallsPage() {
       await adminService.approveHall(id, 'APPROVED');
       setHalls(prev => prev.map(h => h.id === id ? { ...h, approvalStatus: 'APPROVED', status: 'APPROVED' } : h));
       showToast('Tasdiqlandi!');
+    } catch { showToast('Xatolik', 'error'); }
+  };
+
+  const rejectHall = async (id: string) => {
+    if (!confirm("Rad etishni tasdiqlaysizmi?")) return;
+    try {
+      await adminService.approveHall(id, 'REJECTED');
+      setHalls(prev => prev.map(h => h.id === id ? { ...h, approvalStatus: 'REJECTED', status: 'REJECTED' } : h));
+      showToast('Rad etildi', 'error');
     } catch { showToast('Xatolik', 'error'); }
   };
 
@@ -104,6 +125,37 @@ export default function AdminHallsPage() {
     return true;
   });
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map(h => h.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkApprove = async (status: string) => {
+    if (!confirm(`Haqiqatan ham tanlangan ${selectedIds.length} ta to'yxona holatini ${status} ga o'zgartirmoqchimisiz?`)) return;
+    try {
+      const res = await adminService.bulkAction({
+        resource: 'halls',
+        action: 'update_approval',
+        ids: selectedIds,
+        value: status
+      });
+      if (res.data?.success) {
+        showToast(`${selectedIds.length} ta to'yxona yangilandi`, 'success');
+        setHalls(prev => prev.map(h => selectedIds.includes(h.id) ? { ...h, approvalStatus: status, status: status } : h));
+        setSelectedIds([]);
+      }
+    } catch {
+      showToast('Ommaviy yangilashda xatolik', 'error');
+    }
+  };
+
   return (
     <div className="fade-in">
       <div className="flex-between" style={{ marginBottom: 'var(--s-6)' }}>
@@ -112,16 +164,16 @@ export default function AdminHallsPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{halls.length} ta jami</p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--s-3)', alignItems: 'center' }}>
-          <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('table')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('table')} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <FormatListBulletedOutlined sx={{ fontSize: 16 }} />
             Jadval
           </button>
-          <button className={`btn btn-sm ${view === 'card' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('card')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <button className={`btn btn-sm ${view === 'card' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('card')} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <GridViewOutlined sx={{ fontSize: 16 }} />
             Kartalar
           </button>
-          <Link href="/admin/halls/create" className="btn btn-primary">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <Link href="/admin/halls/create" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <AddOutlined sx={{ fontSize: 18 }} />
             Yangi qo&apos;shish
           </Link>
         </div>
@@ -142,11 +194,35 @@ export default function AdminHallsPage() {
         </div>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && view === 'table' && (
+        <div className="card fade-in" style={{ padding: 'var(--s-3) var(--s-4)', marginBottom: 'var(--s-4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-light)' }}>
+          <div>
+            <strong>{selectedIds.length}</strong> ta to&apos;yxona tanlandi
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--s-2)', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Holatni o&apos;zgartirish:</span>
+            <button className="btn btn-outline btn-sm" onClick={() => handleBulkApprove('APPROVED')} style={{ borderColor: 'var(--success)', color: 'var(--success)' }}>
+              Tasdiqlash
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={() => handleBulkApprove('REJECTED')} style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>
+              Rad etish
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={() => handleBulkApprove('PENDING')} style={{ borderColor: 'var(--warning)', color: 'var(--warning)' }}>
+              Kutishga o'tkazish
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? <div className="loading-page"><div className="spinner" /></div> : view === 'table' ? (
         <div className="table-wrapper">
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: 40 }}>
+                  <input type="checkbox" className="form-checkbox" checked={selectedIds.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} />
+                </th>
                 <th>Rasm</th>
                 <th>Nomi</th>
                 <th>Rayon</th>
@@ -158,7 +234,10 @@ export default function AdminHallsPage() {
             </thead>
             <tbody>
               {filtered.map(h => (
-                <tr key={h.id}>
+                <tr key={h.id} className={selectedIds.includes(h.id) ? 'selected-row' : ''}>
+                  <td>
+                    <input type="checkbox" className="form-checkbox" checked={selectedIds.includes(h.id)} onChange={() => toggleSelect(h.id)} />
+                  </td>
                   <td>
                     <div style={{ width: 52, height: 38, borderRadius: 'var(--r-sm)', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
                       <Image
@@ -182,18 +261,23 @@ export default function AdminHallsPage() {
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <Link href={`/admin/halls/${h.id}`} className="btn btn-sm btn-ghost" title="Ko'rish">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <VisibilityOutlined sx={{ fontSize: 16 }} />
                       </Link>
                       <button className="btn btn-sm btn-ghost" onClick={() => openEdit(h)} title="Tahrirlash">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <EditOutlined sx={{ fontSize: 16 }} />
                       </button>
                       {!isApproved(h) && (
-                        <button className="btn btn-sm btn-secondary" onClick={() => approveHall(h.id)} title="Tasdiqlash">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        </button>
+                        <>
+                          <button className="btn btn-sm btn-secondary" onClick={() => approveHall(h.id)} title="Tasdiqlash">
+                            <CheckCircleOutlined sx={{ fontSize: 16 }} />
+                          </button>
+                          <button className="btn btn-sm btn-danger" onClick={() => rejectHall(h.id)} title="Rad etish">
+                            <CancelOutlined sx={{ fontSize: 16 }} />
+                          </button>
+                        </>
                       )}
                       <button className="btn btn-sm btn-danger" onClick={() => deleteHall(h.id)} title="O'chirish">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        <DeleteOutlineOutlined sx={{ fontSize: 16 }} />
                       </button>
                     </div>
                   </td>
@@ -222,22 +306,27 @@ export default function AdminHallsPage() {
                 <div style={{ padding: 'var(--s-4)' }}>
                   <h4 style={{ marginBottom: 'var(--s-1)', fontSize: '1rem', fontWeight: 700 }}>{h.name}</h4>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: 'var(--s-3)' }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 3 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <LocationOnOutlined sx={{ fontSize: 14, mr: 0.5 }} />
                     {h.city || 'Toshkent'} &bull; {h.capacity} kishi
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 700, color: 'var(--burgundy)', fontFamily: 'var(--font-display)' }}>{formatPrice(h.pricePerPlate)}</span>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-sm btn-ghost" onClick={() => openEdit(h)}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <EditOutlined sx={{ fontSize: 14 }} />
                       </button>
                       {!isApproved(h) && (
-                        <button className="btn btn-sm btn-secondary" onClick={() => approveHall(h.id)}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        </button>
+                        <>
+                          <button className="btn btn-sm btn-secondary" onClick={() => approveHall(h.id)}>
+                            <CheckCircleOutlined sx={{ fontSize: 14 }} />
+                          </button>
+                          <button className="btn btn-sm btn-danger" onClick={() => rejectHall(h.id)}>
+                            <CancelOutlined sx={{ fontSize: 14 }} />
+                          </button>
+                        </>
                       )}
                       <button className="btn btn-sm btn-danger" onClick={() => deleteHall(h.id)}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        <DeleteOutlineOutlined sx={{ fontSize: 14 }} />
                       </button>
                     </div>
                   </div>

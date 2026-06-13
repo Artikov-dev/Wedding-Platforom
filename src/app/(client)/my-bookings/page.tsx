@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
 import { bookingStore } from '@/lib/bookingStore';
+import { Lock, ClipboardList } from 'lucide-react';
 
 const statusColor: Record<string, string> = {
   CONFIRMED: 'badge-success',
@@ -99,7 +100,7 @@ export default function MyBookingsPage() {
         <Header />
         <div style={{ paddingTop: 'var(--header-h)' }}>
           <div className="empty-state" style={{ minHeight: '60vh' }}>
-            <div className="empty-state-icon">🔐</div>
+            <div className="empty-state-icon"><Lock size={48} className="text-muted" /></div>
             <h3>Tizimga kiring</h3>
             <p style={{ marginBottom: 'var(--s-6)' }}>Bronlarni ko&apos;rish uchun tizimga kiring</p>
             <a href="/login" className="btn btn-primary">Kirish</a>
@@ -178,7 +179,7 @@ export default function MyBookingsPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon" style={{ fontSize: '3rem' }}>📋</div>
+              <div className="empty-state-icon"><ClipboardList size={48} className="text-muted" /></div>
               <h3>Hali bronlar yo&apos;q</h3>
               <p style={{ marginBottom: 'var(--s-6)' }}>To&apos;yxona tanlang va bron qiling</p>
               <a href="/halls" className="btn btn-primary">To&apos;yxonalarni ko&apos;rish</a>

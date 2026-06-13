@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { paymentsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils';
+import { SyncOutlined, ClearOutlined, DownloadOutlined } from '@mui/icons-material';
+import * as XLSX from 'xlsx';
 
 interface Payment {
   id: string;
@@ -64,6 +66,8 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const { showToast } = useToast();
 
   const fetchPayments = useCallback(async () => {
@@ -86,8 +90,29 @@ export default function AdminPaymentsPage() {
   const filtered = payments.filter(p => {
     if (statusFilter && p.status !== statusFilter) return false;
     if (typeFilter && p.paymentType !== typeFilter) return false;
+    if (startDate && new Date(p.createdAt) < new Date(startDate)) return false;
+    if (endDate && new Date(p.createdAt) > new Date(endDate)) return false;
     return true;
   });
+
+  const exportToExcel = () => {
+    const dataToExport = filtered.map(p => ({
+      'To\'lov ID': p.id,
+      'Bron ID': p.bookingId,
+      'To\'yxona': p.booking?.hall?.name || '-',
+      'Mijoz': p.booking?.user ? `${p.booking.user.firstName} ${p.booking.user.lastName}` : '-',
+      'Summa': p.amount,
+      'To\'lov turi': PAYMENT_TYPE_LABELS[p.paymentType] || p.paymentType,
+      'To\'lov usuli': METHOD_LABELS[p.paymentMethod] || p.paymentMethod,
+      'Status': PAYMENT_STATUS_COLORS[p.status] ? (p.status === 'COMPLETED' ? 'Bajarilgan' : p.status === 'PENDING' ? 'Kutilmoqda' : p.status === 'REFUNDED' ? 'Qaytarilgan' : 'Muvaffaqiyatsiz') : p.status,
+      'Sana': formatDate(p.createdAt)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "To'lovlar");
+    XLSX.writeFile(workbook, `To'lovlar_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
   return (
     <div className="fade-in">
@@ -96,10 +121,16 @@ export default function AdminPaymentsPage() {
           <h1 className="page-title" style={{ marginBottom: 'var(--s-1)' }}>To&apos;lovlar</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{payments.length} ta to&apos;lov</p>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={fetchPayments}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          Yangilash
-        </button>
+        <div style={{ display: 'flex', gap: 'var(--s-2)' }}>
+          <button className="btn btn-outline btn-sm" onClick={exportToExcel} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <DownloadOutlined sx={{ fontSize: 18 }} />
+            Excel yuklab olish
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={fetchPayments} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <SyncOutlined sx={{ fontSize: 18 }} />
+            Yangilash
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -137,10 +168,21 @@ export default function AdminPaymentsPage() {
             <option value="FULL">To&apos;liq</option>
           </select>
         </div>
-        {(statusFilter || typeFilter) && (
+        <div className="form-group">
+          <label className="form-label">Boshlanish</label>
+          <input type="date" className="form-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Tugash</label>
+          <input type="date" className="form-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </div>
+        {(statusFilter || typeFilter || startDate || endDate) && (
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
             <label className="form-label">&nbsp;</label>
-            <button className="btn btn-ghost btn-sm" onClick={() => { setStatusFilter(''); setTypeFilter(''); }}>Tozalash</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setStatusFilter(''); setTypeFilter(''); setStartDate(''); setEndDate(''); }} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <ClearOutlined sx={{ fontSize: 16 }} />
+              Tozalash
+            </button>
           </div>
         )}
       </div>

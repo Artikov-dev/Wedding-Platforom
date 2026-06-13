@@ -34,7 +34,7 @@ export interface Hall {
   pricePerPlate: number;
   advancePercentage?: number;
   imageUrl?: string;
-  images?: string[];
+  images?: HallImage[];
   city?: string;
   address?: string;
   phone?: string;
@@ -48,8 +48,19 @@ export interface Hall {
   userId?: string;
   owner?: User;
   amenities?: Amenity[];
+  reviews?: Review[];
+  _count?: { bookings?: number; reviews?: number; favorites?: number };
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface HallImage {
+  id: string;
+  hallId: string;
+  imageUrl: string;
+  publicId?: string;
+  displayOrder?: number;
+  isMainImage?: boolean;
 }
 
 export interface Amenity {

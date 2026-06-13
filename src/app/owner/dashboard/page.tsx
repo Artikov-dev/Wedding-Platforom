@@ -6,6 +6,15 @@ import { bookingsService, hallsService } from '@/services/api.service';
 import { Booking, Hall } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { 
+  BusinessOutlined, 
+  CalendarMonthOutlined, 
+  CheckCircleOutlineOutlined, 
+  AccessTimeOutlined, 
+  MonetizationOnOutlined, 
+  AddOutlined, 
+  ChevronRightOutlined 
+} from '@mui/icons-material';
 
 const DEMO_BOOKINGS: Booking[] = [
   { id: 'o1', hallId: 'h1', hall: { id: 'h1', name: "Visol to'yxonasi", city: 'Yunusobod', description: '', category: 'PREMIUM', capacity: 500, pricePerPlate: 200000 }, eventDate: '2026-06-15', numberOfGuests: 320, totalAmount: 64000000, advanceAmount: 16000000, finalAmount: 48000000, status: 'CONFIRMED' },
@@ -35,7 +44,7 @@ export default function OwnerDashboard() {
 
         // Load bookings — try owner-specific endpoint first, fallback to general
         try {
-          const res = await bookingsService.list();
+          const res = await bookingsService.list({ limit: 1000 });
           const list = res.data.data?.bookings || [];
           setBookings(list.length > 0 ? list : DEMO_BOOKINGS);
         } catch {
@@ -50,21 +59,21 @@ export default function OwnerDashboard() {
 
   const totalRevenue = bookings
     .filter(b => b.status === 'CONFIRMED' || b.status === 'COMPLETED')
-    .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+    .reduce((sum, b) => sum + Number(b.totalAmount || 0), 0);
 
   const stats = [
-    { icon: '🏛️', label: "To'yxonalar", value: halls.length, bg: 'rgba(196,155,60,0.08)', color: 'var(--gold)' },
-    { icon: '📋', label: 'Jami bronlar', value: bookings.length, bg: 'rgba(114,47,55,0.08)', color: 'var(--burgundy)' },
-    { icon: '✅', label: 'Tasdiqlangan', value: bookings.filter(b => b.status === 'CONFIRMED').length, bg: 'rgba(74,139,92,0.08)', color: 'var(--success)' },
-    { icon: '⏳', label: 'Kutilmoqda', value: bookings.filter(b => b.status === 'PENDING').length, bg: 'rgba(196,155,60,0.08)', color: 'var(--warning)' },
+    { icon: <BusinessOutlined sx={{ fontSize: 24 }} />, label: "To'yxonalar", value: halls.length, bg: 'rgba(196,155,60,0.08)', color: 'var(--gold)' },
+    { icon: <CalendarMonthOutlined sx={{ fontSize: 24 }} />, label: 'Jami bronlar', value: bookings.length, bg: 'rgba(114,47,55,0.08)', color: 'var(--burgundy)' },
+    { icon: <CheckCircleOutlineOutlined sx={{ fontSize: 24 }} />, label: 'Tasdiqlangan', value: bookings.filter(b => b.status === 'CONFIRMED').length, bg: 'rgba(74,139,92,0.08)', color: 'var(--success)' },
+    { icon: <AccessTimeOutlined sx={{ fontSize: 24 }} />, label: 'Kutilmoqda', value: bookings.filter(b => b.status === 'PENDING').length, bg: 'rgba(196,155,60,0.08)', color: 'var(--warning)' },
   ];
 
   return (
     <div className="fade-in">
       <div className="flex-between" style={{ marginBottom: 'var(--s-8)' }}>
         <h1 className="page-title" style={{ marginBottom: 0 }}>Dashboard</h1>
-        <Link href="/owner/register-hall" className="btn btn-primary btn-sm">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 5 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <Link href="/owner/register-hall" className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <AddOutlined sx={{ fontSize: 16 }} />
           Yangi to&apos;yxona
         </Link>
       </div>
@@ -75,7 +84,7 @@ export default function OwnerDashboard() {
           <div style={{ fontSize: '0.8rem', opacity: 0.8, marginBottom: 'var(--s-1)' }}>Jami daromad</div>
           <div style={{ fontSize: '2rem', fontWeight: 700, fontFamily: 'var(--font-display)' }}>{formatPrice(totalRevenue)}</div>
         </div>
-        <div style={{ fontSize: '3rem', opacity: 0.3 }}>💰</div>
+        <div style={{ opacity: 0.3, display: 'flex' }}><MonetizationOnOutlined sx={{ fontSize: 48 }} /></div>
       </div>
 
       {/* Stats */}
@@ -93,13 +102,13 @@ export default function OwnerDashboard() {
 
       {/* Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s-4)', marginBottom: 'var(--s-8)' }}>
-        <Link href="/owner/my-hall" style={{ display: 'block', padding: 'var(--s-5)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', textDecoration: 'none', color: 'var(--text-primary)' }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: 'var(--s-2)' }}>🏛️</div>
+        <Link href="/owner/my-hall" style={{ display: 'block', padding: 'var(--s-5)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', textDecoration: 'none', color: 'var(--text-primary)', transition: 'transform var(--t-fast)' }}>
+          <div style={{ color: 'var(--burgundy)', marginBottom: 'var(--s-2)', display: 'flex' }}><BusinessOutlined sx={{ fontSize: 28 }} /></div>
           <div style={{ fontWeight: 600, marginBottom: 'var(--s-1)' }}>To&apos;yxonalarim</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{halls.length} ta to&apos;yxona</div>
         </Link>
-        <Link href="/owner/bookings" style={{ display: 'block', padding: 'var(--s-5)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', textDecoration: 'none', color: 'var(--text-primary)' }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: 'var(--s-2)' }}>📅</div>
+        <Link href="/owner/bookings" style={{ display: 'block', padding: 'var(--s-5)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', textDecoration: 'none', color: 'var(--text-primary)', transition: 'transform var(--t-fast)' }}>
+          <div style={{ color: 'var(--gold)', marginBottom: 'var(--s-2)', display: 'flex' }}><CalendarMonthOutlined sx={{ fontSize: 28 }} /></div>
           <div style={{ fontWeight: 600, marginBottom: 'var(--s-1)' }}>Bronlar</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{bookings.filter(b => b.status === 'PENDING').length} ta kutilmoqda</div>
         </Link>

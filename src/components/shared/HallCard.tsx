@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Hall } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
+import { Heart } from 'lucide-react';
+
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=75',
   'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=75',
@@ -62,12 +64,12 @@ export default function HallCard({
         )}
         {onFavoriteToggle && (
           <button
-            className="venue-card-fav"
+            className="venue-card-fav flex-center"
             aria-label="Sevimli"
             onClick={e => { e.preventDefault(); e.stopPropagation(); onFavoriteToggle(hall.id); }}
-            style={{ background: isFavorite ? 'rgba(186,35,67,0.9)' : 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer' }}
+            style={{ background: isFavorite ? 'rgba(186,35,67,0.9)' : 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {isFavorite ? '❤️' : '🤍'}
+            <Heart size={18} fill={isFavorite ? '#fff' : 'none'} color={isFavorite ? '#fff' : 'var(--text)'} />
           </button>
         )}
       </div>

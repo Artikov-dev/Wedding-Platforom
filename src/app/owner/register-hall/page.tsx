@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
+import { ImageOutlined } from '@mui/icons-material';
 
 export default function RegisterHallPage() {
   const [form, setForm] = useState({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
@@ -93,10 +94,10 @@ export default function RegisterHallPage() {
             <label className="form-label">Rasm URL</label>
             <input className="form-input" placeholder="https://..." value={form.imageUrl} onChange={e => update('imageUrl', e.target.value)} />
           </div>
-          <div className="image-placeholder" style={{ marginBottom: 'var(--space-lg)' }}>
-            {form.imageUrl ? <img src={form.imageUrl} alt="Preview" style={{ maxHeight: 200, objectFit: 'cover' }} /> : "📷 To'yxona rasmi shu yerda ko'rinadi"}
+          <div className="image-placeholder" style={{ marginBottom: 'var(--s-6)', background: 'var(--cream)', borderRadius: 'var(--r-lg)', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', overflow: 'hidden', position: 'relative' }}>
+            {form.imageUrl ? <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} /> : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--text-muted)' }}><ImageOutlined sx={{ fontSize: 48 }} style={{ opacity: 0.3, marginBottom: 'var(--s-2)' }} /><span>Rasm shu yerda ko&apos;rinadi</span></div>}
           </div>
-          <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%' }}>
             {loading ? 'Yuborilmoqda...' : "Ro'yxatdan o'tkazish"}
           </button>
         </form>

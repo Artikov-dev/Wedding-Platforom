@@ -23,7 +23,38 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register({ firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, password: form.password, role: form.role });
-      showToast('Muvaffaqiyatli! Email tasdiqlang');
+      
+      // Generate OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      sessionStorage.setItem('demo_otp', otpCode);
+
+      // Send OTP Email via local API
+      try {
+        await fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: form.email,
+            subject: 'Wedding Platform - Emailni tasdiqlash (OTP)',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #722F37;">Salom, ${form.firstName}! 👋</h2>
+                <p style="font-size: 16px; color: #333;">Siz <b>Wedding Platform</b> tizimidan ro'yxatdan o'tdingiz. Akkountni faollashtirish uchun quyidagi kodni kiriting:</p>
+                
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #722F37;">${otpCode}</span>
+                </div>
+                
+                <p style="font-size: 14px; color: #777;">Kodni hech kimga bermang. Hurmat bilan,<br/>Wedding Platform Jamoasi</p>
+              </div>
+            `
+          })
+        });
+      } catch (err) {
+        console.error('Email sending failed', err);
+      }
+
+      showToast('Tasdiqlash kodi pochtangizga yuborildi!');
       window.location.href = `/verify-otp?email=${encodeURIComponent(form.email)}`;
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Xatolik yuz berdi';

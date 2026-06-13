@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import React, { useState } from 'react';
 
@@ -10,12 +10,13 @@ const WEEKDAYS = ['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya'];
 
 interface CalendarProps {
   bookedDates?: string[];
+  bookedDetails?: Record<string, string>;
   selectedDate?: string | null;
   onSelectDate?: (date: string) => void;
   onClickBooked?: (date: string) => void;
 }
 
-export default function Calendar({ bookedDates = [], selectedDate, onSelectDate, onClickBooked }: CalendarProps) {
+export default function Calendar({ bookedDates = [], bookedDetails = {}, selectedDate, onSelectDate, onClickBooked }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
@@ -58,6 +59,8 @@ export default function Calendar({ bookedDates = [], selectedDate, onSelectDate,
     onSelectDate?.(dateStr);
   };
 
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+
   const getDayClass = (day: number) => {
     const classes = ['calendar-day'];
     if (isToday(day)) classes.push('today');
@@ -88,27 +91,75 @@ export default function Calendar({ bookedDates = [], selectedDate, onSelectDate,
         ))}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
+          const dateStr = formatDate(day);
+          const bookedInfo = bookedDetails[dateStr];
+
           return (
             <button
               key={day}
               className={getDayClass(day)}
+              style={{ position: 'relative' }}
               onClick={() => handleDayClick(day)}
               disabled={isPast(day) && !isBooked(day)}
+              onMouseEnter={() => setHoveredDay(day)}
+              onMouseLeave={() => setHoveredDay(null)}
             >
               {day}
+              
+              {/* Custom Tooltip */}
+              {isBooked(day) && hoveredDay === day && bookedInfo && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: 'calc(100% + 12px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'linear-gradient(135deg, var(--burgundy) 0%, var(--gold) 100%)',
+                  color: 'var(--white)',
+                  padding: '8px 14px',
+                  borderRadius: '12px',
+                  fontSize: '0.82rem',
+                  whiteSpace: 'nowrap',
+                  zIndex: 50,
+                  boxShadow: '0 8px 24px rgba(114, 47, 55, 0.4)',
+                  pointerEvents: 'none',
+                  animation: 'bookOpen 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards',
+                  transformOrigin: 'bottom center',
+                  fontWeight: '600',
+                  lineHeight: '1.4',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.9 }}>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  {bookedInfo}
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    borderWidth: '6px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--gold) transparent transparent transparent',
+                    opacity: 0.9
+                  }} />
+                </div>
+              )}
             </button>
           );
         })}
       </div>
       <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(74,139,92,0.2)', display: 'inline-block' }} /> Bo&apos;sh
+          ✅ Bo&apos;sh
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(184,58,58,0.15)', display: 'inline-block' }} /> Bron qilingan
+          🔴 Band qilingan
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ width: 12, height: 12, borderRadius: 3, background: 'var(--border)', display: 'inline-block' }} /> O&apos;tgan
+          ⚪ O&apos;tgan
         </span>
       </div>
     </div>

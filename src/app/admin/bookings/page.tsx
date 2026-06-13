@@ -1,11 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { bookingsService, paymentsService } from '@/services/api.service';
+import { bookingsService, paymentsService, adminService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
 import { bookingStore } from '@/lib/bookingStore';
+import { 
+  SearchOutlined, 
+  DownloadOutlined, 
+  FormatListBulletedOutlined, 
+  ClearOutlined,
+  PictureAsPdfOutlined
+} from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { BookingTicket } from '@/components/pdf/BookingTicket';
+import * as XLSX from 'xlsx';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
 const statusColor: Record<string, string> = {
@@ -29,9 +40,14 @@ export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const ticketRef = React.useRef<HTMLDivElement>(null);
+  const [ticketBooking, setTicketBooking] = useState<Booking | null>(null);
   const { showToast } = useToast();
 
   const fetchBookings = useCallback(async () => {
@@ -73,9 +89,9 @@ export default function AdminBookingsPage() {
       showToast('Status yangilandi');
     } catch (err: unknown) {
       const code = (err as { response?: { status?: number } })?.response?.status;
-      // 403 = backend only allows booking owner to update — backend needs fix
+      // 403 = backend only allows booking owner to update
       if (code === 403) {
-        showToast("Backend: faqat bron egasi o'zgartira oladi (backend fix kerak)", 'error');
+        showToast("Ruxsat yetarli emas", 'error');
       } else {
         showToast('Xatolik yuz berdi', 'error');
       }
@@ -90,13 +106,89 @@ export default function AdminBookingsPage() {
 
   const filtered = bookings.filter(b => {
     if (statusFilter && b.status !== statusFilter) return false;
-    if (dateFilter && !b.eventDate?.startsWith(dateFilter)) return false;
+    if (startDate && new Date(b.eventDate) < new Date(startDate)) return false;
+    if (endDate && new Date(b.eventDate) > new Date(endDate)) return false;
     if (search) {
       const q = search.toLowerCase();
       return (b.hall?.name || '').toLowerCase().includes(q) || (b.user?.firstName || '').toLowerCase().includes(q) || b.id.includes(q);
     }
     return true;
   });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map(b => b.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkUpdate = async (status: string) => {
+    if (!confirm(`Haqiqatan ham tanlangan ${selectedIds.length} ta bron holatini ${status} ga o'zgartirmoqchimisiz?`)) return;
+    try {
+      const res = await adminService.bulkAction({
+        resource: 'bookings',
+        action: 'update_status',
+        ids: selectedIds,
+        value: status
+      });
+      if (res.data?.success) {
+        showToast(`${selectedIds.length} ta bron yangilandi`, 'success');
+        setBookings(prev => prev.map(b => selectedIds.includes(b.id) ? { ...b, status } : b));
+        setSelectedIds([]);
+      }
+    } catch {
+      showToast('Ommaviy yangilashda xatolik', 'error');
+    }
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filtered.map(b => ({
+      'Bron ID': b.id,
+      'To\'yxona': b.hall?.name || '-',
+      'Mijoz': b.user ? `${b.user.firstName} ${b.user.lastName}` : '-',
+      'Mijoz Tel': b.user?.phone || '-',
+      'Sana': formatDate(b.eventDate),
+      'Mehmonlar soni': b.numberOfGuests,
+      'Jami narx': b.totalAmount,
+      'Avans': b.advanceAmount,
+      'Status': BOOKING_STATUSES[b.status as keyof typeof BOOKING_STATUSES] || b.status,
+      'Izoh': b.notes || '-'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bronlar");
+    XLSX.writeFile(workbook, `Bronlar_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadTicket = async (booking: Booking) => {
+    setTicketBooking(booking);
+    setDownloadingId(booking.id);
+    
+    // Allow state to update and DOM to render the hidden ticket
+    setTimeout(async () => {
+      if (ticketRef.current) {
+        try {
+          const canvas = await html2canvas(ticketRef.current, { scale: 2, useCORS: true });
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('l', 'px', [canvas.width / 2, canvas.height / 2]);
+          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+          pdf.save(`Bilet_${booking.bookingNumber || booking.id.slice(0, 8)}.pdf`);
+          showToast('Bilet muvaffaqiyatli yuklandi', 'success');
+        } catch (error) {
+          showToast('PDF generatsiyasida xatolik', 'error');
+        } finally {
+          setDownloadingId(null);
+          setTicketBooking(null);
+        }
+      }
+    }, 100);
+  };
 
   const stats = {
     total: bookings.length,
@@ -107,7 +199,13 @@ export default function AdminBookingsPage() {
 
   return (
     <div className="fade-in">
-      <h1 className="page-title">Barcha bronlar</h1>
+      <div className="flex-between" style={{ marginBottom: 'var(--s-6)' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>Barcha bronlar</h1>
+        <button className="btn btn-outline" onClick={exportToExcel} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <DownloadOutlined sx={{ fontSize: 18 }} />
+          Excel yuklab olish
+        </button>
+      </div>
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--s-4)', marginBottom: 'var(--s-8)' }}>
@@ -127,8 +225,8 @@ export default function AdminBookingsPage() {
       {/* Filters */}
       <div className="filters-bar">
         <div className="form-group" style={{ flex: 2 }}>
-          <label className="form-label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 5 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <SearchOutlined sx={{ fontSize: 16 }} />
             Qidiruv
           </label>
           <input className="form-input" placeholder="To'yxona nomi yoki foydalanuvchi..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -141,25 +239,47 @@ export default function AdminBookingsPage() {
           </select>
         </div>
         <div className="form-group">
-          <label className="form-label">Sana</label>
-          <input type="date" className="form-input" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+          <label className="form-label">Boshlanish</label>
+          <input type="date" className="form-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
         </div>
-        {(statusFilter || dateFilter || search) && (
+        <div className="form-group">
+          <label className="form-label">Tugash</label>
+          <input type="date" className="form-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </div>
+        {(statusFilter || startDate || endDate || search) && (
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
             <label className="form-label">&nbsp;</label>
-            <button className="btn btn-ghost btn-sm" onClick={() => { setStatusFilter(''); setDateFilter(''); setSearch(''); }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setStatusFilter(''); setStartDate(''); setEndDate(''); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <ClearOutlined sx={{ fontSize: 16 }} />
               Tozalash
             </button>
           </div>
         )}
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="card fade-in" style={{ padding: 'var(--s-3) var(--s-4)', marginBottom: 'var(--s-4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-light)' }}>
+          <div>
+            <strong>{selectedIds.length}</strong> ta bron tanlandi
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--s-2)', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Holatni o&apos;zgartirish:</span>
+            {Object.entries(BOOKING_STATUSES).map(([k, v]) => (
+              <button key={k} className="btn btn-outline btn-sm" onClick={() => handleBulkUpdate(k)}>{v}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? <div className="loading-page"><div className="spinner" /></div> : filtered.length > 0 ? (
         <div className="table-wrapper">
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: 40 }}>
+                  <input type="checkbox" className="form-checkbox" checked={selectedIds.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} />
+                </th>
                 <th>#</th>
                 <th>To&apos;yxona</th>
                 <th>Mijoz</th>
@@ -167,12 +287,15 @@ export default function AdminBookingsPage() {
                 <th>Mehmonlar</th>
                 <th>Narx</th>
                 <th>Status</th>
-                <th>Izoh</th>
+                <th>Amallar</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((b, idx) => (
-                <tr key={b.id}>
+                <tr key={b.id} className={selectedIds.includes(b.id) ? 'selected-row' : ''}>
+                  <td>
+                    <input type="checkbox" className="form-checkbox" checked={selectedIds.includes(b.id)} onChange={() => toggleSelect(b.id)} />
+                  </td>
                   <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{idx + 1}</td>
                   <td style={{ fontWeight: 600 }}>{b.hall?.name || b.hallId.slice(0, 8) + '...'}</td>
                   <td>{b.user ? `${b.user.firstName} ${b.user.lastName || ''}` : '—'}</td>
@@ -180,12 +303,31 @@ export default function AdminBookingsPage() {
                   <td>{b.numberOfGuests} kishi</td>
                   <td style={{ fontWeight: 600, fontFamily: 'var(--font-display)', color: 'var(--burgundy)' }}>{formatPrice(b.totalAmount)}</td>
                   <td>
-                    <span className={`badge ${statusColor[b.status] || 'badge-warning'}`}>
-                      {BOOKING_STATUSES[b.status] || b.status}
-                    </span>
+                    {updatingId === b.id ? (
+                      <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                    ) : (
+                      <select 
+                        className={`form-select form-select-sm badge ${statusColor[b.status] || 'badge-warning'}`}
+                        value={b.status}
+                        onChange={(e) => updateStatus(b.id, e.target.value)}
+                        style={{ padding: '2px 8px', height: '28px', fontSize: '0.75rem', borderRadius: 'var(--r-full)', cursor: 'pointer', border: 'none', appearance: 'none', background: 'transparent' }}
+                      >
+                        {Object.entries(BOOKING_STATUSES).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
+                    )}
                   </td>
-                  <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: 120 }}>
-                    {b.notes ? b.notes.slice(0, 40) + (b.notes.length > 40 ? '...' : '') : '—'}
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-ghost" 
+                      onClick={() => handleDownloadTicket(b)}
+                      disabled={downloadingId === b.id || b.status !== 'CONFIRMED'}
+                      title={b.status !== 'CONFIRMED' ? 'Faqat tasdiqlangan bronlar uchun' : 'PDF Bilet yuklash'}
+                      style={{ color: b.status === 'CONFIRMED' ? 'var(--burgundy)' : 'var(--text-muted)' }}
+                    >
+                      {downloadingId === b.id ? <span className="spinner" style={{ width: 14, height: 14 }} /> : <PictureAsPdfOutlined sx={{ fontSize: 18 }} />}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -194,11 +336,18 @@ export default function AdminBookingsPage() {
         </div>
       ) : (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center' }}>
+            <FormatListBulletedOutlined sx={{ fontSize: 64 }} />
+          </div>
           <h3>{bookings.length === 0 ? 'Bronlar yo\'q' : 'Filter natijasi bo\'sh'}</h3>
-          {bookings.length > 0 && <button className="btn btn-ghost" onClick={() => { setStatusFilter(''); setDateFilter(''); setSearch(''); }}>Filterlarni tozalash</button>}
+          {bookings.length > 0 && <button className="btn btn-ghost" onClick={() => { setStatusFilter(''); setEndDate(''); setSearch(''); }}>Filterlarni tozalash</button>}
         </div>
       )}
+
+      {/* Hidden container for PDF generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+        {ticketBooking && <BookingTicket booking={ticketBooking} ref={ticketRef} />}
+      </div>
     </div>
   );
 }

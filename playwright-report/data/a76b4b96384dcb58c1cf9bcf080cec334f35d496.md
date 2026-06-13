@@ -1,0 +1,392 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: auth.spec.ts >> Authentication Flows >> Register Flow >> should validate password length
+- Location: tests\auth.spec.ts:153:9
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded while running "beforeEach" hook.
+```
+
+```
+Tearing down "context" exceeded the test timeout of 30000ms.
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "To'yxona.uz" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - link "Bosh sahifa" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - link "To'yxonalar" [ref=e7] [cursor=pointer]:
+          - /url: /halls
+      - generic [ref=e9]:
+        - link "Kirish" [ref=e10] [cursor=pointer]:
+          - /url: /login
+        - link "Ro'yxatdan o'tish" [ref=e11] [cursor=pointer]:
+          - /url: /register
+  - generic [ref=e17]:
+    - generic [ref=e19]:
+      - img [ref=e20]
+      - text: PREMIUM TO'YXONALAR PLATFORMASI
+    - heading "Orzuingizdagi to'yni biz bilan boshlang" [level=1] [ref=e23]:
+      - text: Orzuingizdagi to'yni
+      - text: biz bilan boshlang
+    - generic [ref=e24]:
+      - img [ref=e25]
+      - textbox "To'yxona nomi yoki manzilini yozing..." [ref=e28]
+      - link "Qidirish" [ref=e29] [cursor=pointer]:
+        - /url: /halls
+    - generic [ref=e30]:
+      - link "Xaritadan qidirish" [ref=e31] [cursor=pointer]:
+        - /url: /map
+        - img [ref=e32]
+        - text: Xaritadan qidirish
+      - link "Ro'yxatdan o'tish →" [ref=e34] [cursor=pointer]:
+        - /url: /register
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - generic [ref=e41]: 200+
+      - generic [ref=e42]: To'yxonalar
+    - generic [ref=e43]:
+      - generic [ref=e44]: 5,000+
+      - generic [ref=e45]: Muvaffaqiyatli to'ylar
+    - generic [ref=e46]:
+      - generic [ref=e47]: "4.8"
+      - generic [ref=e48]: O'rtacha reyting
+    - generic [ref=e49]:
+      - generic [ref=e50]: 50+
+      - generic [ref=e51]: Shaharlar
+  - generic [ref=e53]:
+    - generic [ref=e54]:
+      - generic [ref=e55]: ✦ Eng sara to'yxonalar
+      - heading "Mashhur to'yxonalar" [level=2] [ref=e56]
+      - paragraph [ref=e57]: Toshkentdagi eng yaxshi va ishonchli to'yxonalarni kashf eting
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - img "Navro'z Palace" [ref=e61]
+          - generic [ref=e62]: Premium
+          - button "Sevimli" [ref=e63] [cursor=pointer]:
+            - img [ref=e64]
+        - generic [ref=e66]:
+          - heading "Navro'z Palace" [level=3] [ref=e67]
+          - generic [ref=e68]:
+            - img [ref=e69]
+            - text: Yunusobod tumani
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - img [ref=e74]
+              - text: 500 kishi
+            - generic [ref=e79]:
+              - img [ref=e80]
+              - text: "4.9"
+          - paragraph [ref=e82]: Toshkentdagi eng hashamatli to'y marosimlarini o'tkazish uchun mo'ljallangan zamonaviy saroy
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]: 180 000 so'm
+              - generic [ref=e87]: 1 kishi uchun
+            - link "Batafsil →" [ref=e88] [cursor=pointer]:
+              - /url: /halls
+      - generic [ref=e89]:
+        - generic [ref=e90]:
+          - img "Grand Tashkent" [ref=e91]
+          - generic [ref=e92]: Mashhur
+          - button "Sevimli" [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+        - generic [ref=e96]:
+          - heading "Grand Tashkent" [level=3] [ref=e97]
+          - generic [ref=e98]:
+            - img [ref=e99]
+            - text: Mirobod tumani
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - img [ref=e104]
+              - text: 400 kishi
+            - generic [ref=e109]:
+              - img [ref=e110]
+              - text: "4.8"
+          - paragraph [ref=e112]: Klassik uslubdagi keng va yorug' zal, 400 kishilik sig'im bilan
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: 150 000 so'm
+              - generic [ref=e117]: 1 kishi uchun
+            - link "Batafsil →" [ref=e118] [cursor=pointer]:
+              - /url: /halls
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - img "Royal Wedding Hall" [ref=e121]
+          - button "Sevimli" [ref=e122] [cursor=pointer]:
+            - img [ref=e123]
+        - generic [ref=e125]:
+          - heading "Royal Wedding Hall" [level=3] [ref=e126]
+          - generic [ref=e127]:
+            - img [ref=e128]
+            - text: Chilonzor tumani
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - img [ref=e133]
+              - text: 350 kishi
+            - generic [ref=e138]:
+              - img [ref=e139]
+              - text: "4.7"
+          - paragraph [ref=e141]: Shohona bezatilgan zal, zamonaviy yorug'lik tizimi va professional xizmat
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - generic [ref=e145]: 120 000 so'm
+              - generic [ref=e146]: 1 kishi uchun
+            - link "Batafsil →" [ref=e147] [cursor=pointer]:
+              - /url: /halls
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - img "Diamond Hall" [ref=e150]
+          - generic [ref=e151]: VIP
+          - button "Sevimli" [ref=e152] [cursor=pointer]:
+            - img [ref=e153]
+        - generic [ref=e155]:
+          - heading "Diamond Hall" [level=3] [ref=e156]
+          - generic [ref=e157]:
+            - img [ref=e158]
+            - text: Yakkasaroy tumani
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - img [ref=e163]
+              - text: 600 kishi
+            - generic [ref=e168]:
+              - img [ref=e169]
+              - text: "4.9"
+          - paragraph [ref=e171]: Toshkentning eng katta va zamonaviy to'yxonasi — olmos darajasidagi xizmat
+          - generic [ref=e173]:
+            - generic [ref=e174]:
+              - generic [ref=e175]: 200 000 so'm
+              - generic [ref=e176]: 1 kishi uchun
+            - link "Batafsil →" [ref=e177] [cursor=pointer]:
+              - /url: /halls
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - img "Oqshom Plaza" [ref=e180]
+          - button "Sevimli" [ref=e181] [cursor=pointer]:
+            - img [ref=e182]
+        - generic [ref=e184]:
+          - heading "Oqshom Plaza" [level=3] [ref=e185]
+          - generic [ref=e186]:
+            - img [ref=e187]
+            - text: Sergeli tumani
+          - generic [ref=e190]:
+            - generic [ref=e191]:
+              - img [ref=e192]
+              - text: 250 kishi
+            - generic [ref=e197]:
+              - img [ref=e198]
+              - text: "4.6"
+          - paragraph [ref=e200]: Oilaviy muhitda qulay va sifatli xizmat, ochiq hovli va bog' bilan
+          - generic [ref=e202]:
+            - generic [ref=e203]:
+              - generic [ref=e204]: 100 000 so'm
+              - generic [ref=e205]: 1 kishi uchun
+            - link "Batafsil →" [ref=e206] [cursor=pointer]:
+              - /url: /halls
+      - generic [ref=e207]:
+        - generic [ref=e208]:
+          - img "Samarqand Hall" [ref=e209]
+          - generic [ref=e210]: Yangi
+          - button "Sevimli" [ref=e211] [cursor=pointer]:
+            - img [ref=e212]
+        - generic [ref=e214]:
+          - heading "Samarqand Hall" [level=3] [ref=e215]
+          - generic [ref=e216]:
+            - img [ref=e217]
+            - text: Olmazor tumani
+          - generic [ref=e220]:
+            - generic [ref=e221]:
+              - img [ref=e222]
+              - text: 300 kishi
+            - generic [ref=e227]:
+              - img [ref=e228]
+              - text: "4.7"
+          - paragraph [ref=e230]: O'zbek milliy uslubida bezatilgan zal, an'anaviy va zamonaviy uyg'unlik
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: 130 000 so'm
+              - generic [ref=e235]: 1 kishi uchun
+            - link "Batafsil →" [ref=e236] [cursor=pointer]:
+              - /url: /halls
+    - link "Barcha to'yxonalarni ko'rish →" [ref=e238] [cursor=pointer]:
+      - /url: /halls
+  - generic [ref=e240]:
+    - generic [ref=e241]:
+      - generic [ref=e242]: ✦ Nima uchun biz?
+      - heading "Sizning qulayligingiz uchun" [level=2] [ref=e243]
+      - paragraph [ref=e244]: Eng qulay va ishonchli bron qilish tajribasini taqdim etamiz
+    - generic [ref=e245]:
+      - generic [ref=e246]:
+        - img [ref=e248]
+        - heading "Oson qidiruv" [level=4] [ref=e251]
+        - paragraph [ref=e252]: Rayon, narx va sig'im bo'yicha filtrlang. Real-time qidiruv bilan eng mos to'yxonani toping.
+      - generic [ref=e253]:
+        - img [ref=e255]
+        - heading "Online bron" [level=4] [ref=e257]
+        - paragraph [ref=e258]: Kalendardan bo'sh kunni tanlang, qo'shimcha xizmatlarni belgilang va bir zumda bron qiling.
+      - generic [ref=e259]:
+        - img [ref=e261]
+        - heading "Xavfsiz to'lov" [level=4] [ref=e263]
+        - paragraph [ref=e264]: 25% avans to'lab joyingizni band qiling. Xavfsiz va tez to'lov tizimi.
+      - generic [ref=e265]:
+        - img [ref=e267]
+        - heading "Ishonchli sharhlar" [level=4] [ref=e269]
+        - paragraph [ref=e270]: Haqiqiy mijozlar sharhlarini o'qing va eng yaxshi to'yxonani ishonch bilan tanlang.
+  - generic [ref=e272]:
+    - generic [ref=e273]:
+      - generic [ref=e274]: ✦ Qanday ishlaydi?
+      - heading "3 ta oddiy qadam" [level=2] [ref=e275]
+    - generic [ref=e276]:
+      - generic [ref=e277]:
+        - img [ref=e280]
+        - generic [ref=e283]: QADAM 01
+        - heading "To'yxona tanlang" [level=4] [ref=e284]
+        - paragraph [ref=e285]: 200+ to'yxona orasidan rayon, narx va sig'im bo'yicha eng mosini tanlang
+      - generic [ref=e286]:
+        - img [ref=e289]
+        - generic [ref=e291]: QADAM 02
+        - heading "Kun va xizmatlarni tanlang" [level=4] [ref=e292]
+        - paragraph [ref=e293]: Kalendardan bo'sh kunni belgilang, qo'shimcha xizmatlar qo'shing
+      - generic [ref=e294]:
+        - img [ref=e297]
+        - generic [ref=e300]: QADAM 03
+        - heading "Bron qiling va to'lang" [level=4] [ref=e301]
+        - paragraph [ref=e302]: 25% avans to'lab joyingizni band qiling. Tasdiqlash darhol keladi
+  - generic [ref=e304]:
+    - generic [ref=e305]:
+      - generic [ref=e306]: ✦ Galereya
+      - heading "Ajoyib lahzalar" [level=2] [ref=e307]
+      - paragraph [ref=e308]: To'yxonalarimiz interyer va bezaklari bilan tanishing
+    - generic [ref=e309]:
+      - generic [ref=e310] [cursor=pointer]:
+        - img "Hashamatli to'y zali interyeri" [ref=e311]
+        - generic [ref=e313]: Hashamatli to'y zali interyeri
+      - generic [ref=e314] [cursor=pointer]:
+        - img "Zamonaviy sahna bezatish" [ref=e315]
+        - generic [ref=e317]: Zamonaviy sahna bezatish
+      - generic [ref=e318] [cursor=pointer]:
+        - img "Premium banket stollari" [ref=e319]
+        - generic [ref=e321]: Premium banket stollari
+      - generic [ref=e322] [cursor=pointer]:
+        - img "Ochiq havo marosimi" [ref=e323]
+        - generic [ref=e325]: Ochiq havo marosimi
+      - generic [ref=e326] [cursor=pointer]:
+        - img "Romantik yoritish dizayni" [ref=e327]
+        - generic [ref=e329]: Romantik yoritish dizayni
+      - generic [ref=e330] [cursor=pointer]:
+        - img "Gul bezaklari va dekor" [ref=e331]
+        - generic [ref=e333]: Gul bezaklari va dekor
+  - generic [ref=e335]:
+    - generic [ref=e336]:
+      - generic [ref=e337]: ✦ Mijozlar fikri
+      - heading "Ishonch va mamnuniyat" [level=2] [ref=e338]
+      - paragraph [ref=e339]: Bizning xizmatimizdan foydalangan mijozlarning fikrlari
+    - generic [ref=e340]:
+      - generic [ref=e341]:
+        - generic [ref=e342]: “
+        - paragraph [ref=e343]: To'yxona.uz orqali biz orzuimizdagi to'yxonani topdik. Bron qilish juda oson va qulay bo'ldi. Xizmat darajasi a'lo!
+        - generic [ref=e344]: ★★★★★
+        - generic [ref=e346]:
+          - generic [ref=e347]: DK
+          - generic [ref=e348]:
+            - generic [ref=e349]: Dilnoza Karimova
+            - generic [ref=e350]: Kelin, 2024-yil to'yi
+      - generic [ref=e351]:
+        - generic [ref=e352]: “
+        - paragraph [ref=e353]: 300 kishilik to'yimiz uchun eng mos variantni 10 daqiqada topdik. Kalendardan bo'sh kunni ko'rib, darhol bron qildik.
+        - generic [ref=e354]: ★★★★★
+        - generic [ref=e356]:
+          - generic [ref=e357]: JA
+          - generic [ref=e358]:
+            - generic [ref=e359]: Jasur Aliyev
+            - generic [ref=e360]: Kuyov, 2024-yil mart
+      - generic [ref=e361]:
+        - generic [ref=e362]: “
+        - paragraph [ref=e363]: To'yxona egasi sifatida aytaman — bu platforma mijozlarni topishda juda yordam berdi. Professional va zamonaviy tizim.
+        - generic [ref=e364]: ★★★★★
+        - generic [ref=e366]:
+          - generic [ref=e367]: BT
+          - generic [ref=e368]:
+            - generic [ref=e369]: Bobur To'ychiyev
+            - generic [ref=e370]: To'yxona egasi
+  - generic [ref=e372]:
+    - paragraph [ref=e373]: Hamkorlarimiz
+    - generic [ref=e374]:
+      - generic [ref=e375]:
+        - img [ref=e376]
+        - text: Hilton
+      - generic [ref=e380]:
+        - img [ref=e381]
+        - text: Uzbekistan Airways
+      - generic [ref=e385]:
+        - img [ref=e386]
+        - text: Premium Florals
+      - generic [ref=e390]:
+        - img [ref=e391]
+        - text: Royal Bakery
+      - generic [ref=e395]:
+        - img [ref=e396]
+        - text: Studio Pro
+  - generic [ref=e402]:
+    - generic [ref=e403]: ✦ Tayyor misiz?
+    - heading "O'zingizga mos to'yxonani hoziroq toping" [level=2] [ref=e404]
+    - paragraph [ref=e405]: 200 dan ortiq to'yxonalar orasidan o'zingizga mosini tanlang. Bepul ro'yxatdan o'ting va bir necha daqiqada bron qiling.
+    - generic [ref=e406]:
+      - link "To'yxonalarni ko'rish" [ref=e407] [cursor=pointer]:
+        - /url: /halls
+        - img [ref=e408]
+        - text: To'yxonalarni ko'rish
+      - link "Bepul boshlash" [ref=e412] [cursor=pointer]:
+        - /url: /register
+        - img [ref=e413]
+        - text: Bepul boshlash
+  - contentinfo [ref=e416]:
+    - generic [ref=e417]:
+      - generic [ref=e418]:
+        - generic [ref=e419]:
+          - heading "To'yxona.uz" [level=3] [ref=e420]
+          - paragraph [ref=e421]: O'zbekistondagi eng yaxshi to'yxonalarni toping va online bron qiling. Sizning hayotingizdagi eng muhim kun uchun eng yaxshi joy.
+        - generic [ref=e422]:
+          - heading "Sahifalar" [level=4] [ref=e423]
+          - link "Bosh sahifa" [ref=e424] [cursor=pointer]:
+            - /url: /
+          - link "To'yxonalar" [ref=e425] [cursor=pointer]:
+            - /url: /halls
+          - link "Kirish" [ref=e426] [cursor=pointer]:
+            - /url: /login
+          - link "Ro'yxatdan o'tish" [ref=e427] [cursor=pointer]:
+            - /url: /register
+        - generic [ref=e428]:
+          - heading "Xizmatlar" [level=4] [ref=e429]
+          - link "Bron qilish" [ref=e430] [cursor=pointer]:
+            - /url: /halls
+          - link "To'yxona qidirish" [ref=e431] [cursor=pointer]:
+            - /url: /halls
+          - link "Egasi sifatida" [ref=e432] [cursor=pointer]:
+            - /url: /register
+        - generic [ref=e433]:
+          - heading "Bog'lanish" [level=4] [ref=e434]
+          - link "+998 90 123 45 67" [ref=e435] [cursor=pointer]:
+            - /url: tel:+998901234567
+          - link "artikovrozimuhammadxon@gmail.com" [ref=e436] [cursor=pointer]:
+            - /url: mailto:artikovrozimuhammadxon@gmail.com
+          - generic [ref=e437]: Toshkent, O'zbekiston
+      - generic [ref=e439]:
+        - generic [ref=e440]: © 2026 To'yxona.uz
+        - generic [ref=e441]: Sevgi bilan yaratilgan ♥
+```

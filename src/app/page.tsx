@@ -4,6 +4,9 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { useAuth } from '@/context/AuthContext';
+import ParallaxHero from '@/components/home/ParallaxHero';
+import { Building2, Sparkles, CalendarDays, Heart, MapPin, Users, Star, Search, CreditCard, Utensils, MessageSquare, CheckCircle2 } from 'lucide-react';
 
 /* ── Real Unsplash venue images ── */
 const VENUES = [
@@ -50,10 +53,10 @@ const VENUES = [
 ];
 
 const FEATURES = [
-  { icon: '🔍', title: "Oson qidiruv", desc: "Rayon, narx va sig'im bo'yicha filtrlang. Real-time qidiruv bilan eng mos to'yxonani toping." },
-  { icon: '📅', title: "Online bron", desc: "Kalendardan bo'sh kunni tanlang, qo'shimcha xizmatlarni belgilang va bir zumda bron qiling." },
-  { icon: '💳', title: "Xavfsiz to'lov", desc: "25% avans to'lab joyingizni band qiling. Xavfsiz va tez to'lov tizimi." },
-  { icon: '⭐', title: "Ishonchli sharhlar", desc: "Haqiqiy mijozlar sharhlarini o'qing va eng yaxshi to'yxonani ishonch bilan tanlang." },
+  { icon: <Search size={32} color="var(--burgundy)" />, title: "Oson qidiruv", desc: "Rayon, narx va sig'im bo'yicha filtrlang. Real-time qidiruv bilan eng mos to'yxonani toping." },
+  { icon: <CalendarDays size={32} color="var(--burgundy)" />, title: "Online bron", desc: "Kalendardan bo'sh kunni tanlang, qo'shimcha xizmatlarni belgilang va bir zumda bron qiling." },
+  { icon: <CreditCard size={32} color="var(--burgundy)" />, title: "Xavfsiz to'lov", desc: "25% avans to'lab joyingizni band qiling. Xavfsiz va tez to'lov tizimi." },
+  { icon: <Star size={32} fill="var(--gold)" color="var(--gold)" />, title: "Ishonchli sharhlar", desc: "Haqiqiy mijozlar sharhlarini o'qing va eng yaxshi to'yxonani ishonch bilan tanlang." },
 ];
 
 const GALLERY = [
@@ -88,6 +91,7 @@ const STATS = [
 ];
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -108,82 +112,7 @@ export default function HomePage() {
     <>
       <Header />
 
-      {/* ═══ HERO ═══ */}
-      <section className="hero">
-        <div className="hero-bg">
-          <div className="hero-ornament hero-ornament-1">♥</div>
-          <div className="hero-ornament hero-ornament-2">✦</div>
-        </div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <span className="hero-accent reveal reveal-delay-1">✦ Hayotingizdagi eng muhim kun uchun</span>
-            <h1 className="reveal reveal-delay-2">Orzuingizdagi to&apos;yni biz bilan rejalashtiring</h1>
-            <p className="reveal reveal-delay-3">
-              O&apos;zbekistondagi eng sara to&apos;yxonalarni kashf eting, taqqoslang va bir necha
-              daqiqada online bron qiling. Har bir tafsilot sizning maxsus kuningiz uchun.
-            </p>
-            <div className="hero-actions reveal reveal-delay-4">
-              <Link href="/halls" className="btn btn-primary btn-xl">
-                🏛️ To&apos;yxonalarni ko&apos;rish
-              </Link>
-              <Link href="/register" className="btn btn-outline btn-xl">
-                ✨ Bepul ro&apos;yxatdan o&apos;tish
-              </Link>
-            </div>
-            <div className="hero-stats reveal reveal-delay-5">
-              {STATS.slice(0, 3).map((s, i) => (
-                <div key={i}>
-                  <div className="hero-stat-value">{s.value}</div>
-                  <div className="hero-stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="hero-visual reveal-scale reveal-delay-3">
-            <div className="hero-img-main" style={{ position: 'relative' }}>
-              <img
-                src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=900&q=80"
-                alt="Luxury Wedding Hall"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                  const p = t.parentElement!;
-                  p.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">🏛️</span><span>Luxury Wedding Hall</span></div>';
-                }}
-              />
-              <div style={{ position: 'absolute', top: 'var(--s-4)', left: 'var(--s-4)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderRadius: 'var(--r-full)', padding: '0.3rem 0.9rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--burgundy)' }}>
-                ★ 4.9 · Premium
-              </div>
-            </div>
-            <div className="hero-img-sm">
-              <img
-                src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&q=80"
-                alt="Elegant Decor"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                  t.parentElement!.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">💐</span><span>Elegant Decor</span></div>';
-                }}
-              />
-            </div>
-            <div className="hero-img-sm">
-              <img
-                src="https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=500&q=80"
-                alt="Wedding Banquet"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={e => {
-                  const t = e.target as HTMLImageElement;
-                  t.style.display = 'none';
-                  t.parentElement!.innerHTML = '<div class="img-placeholder" style="height:100%"><span class="img-placeholder-icon">🍽️</span><span>Wedding Banquet</span></div>';
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <ParallaxHero />
 
       {/* ═══ STATS BANNER ═══ */}
       <div style={{ background: 'var(--burgundy)', padding: 'var(--s-8) 0' }}>
@@ -220,14 +149,22 @@ export default function HomePage() {
                     loading="lazy"
                   />
                   {v.badge && <div className="venue-card-badge">{v.badge}</div>}
-                  <button className="venue-card-fav" aria-label="Sevimli">🤍</button>
+                  <button className="venue-card-fav" aria-label="Sevimli">
+                    <Heart size={20} />
+                  </button>
                 </div>
                 <div className="venue-card-content">
                   <h3 className="venue-card-name">{v.name}</h3>
-                  <div className="venue-card-location">📍 {v.district} tumani</div>
+                  <div className="venue-card-location">
+                    <MapPin size={14} className="inline-icon" /> {v.district} tumani
+                  </div>
                   <div className="venue-card-meta">
-                    <span className="venue-card-meta-item">👥 {v.capacity} kishi</span>
-                    <span className="venue-card-meta-item">⭐ {v.rating}</span>
+                    <span className="venue-card-meta-item">
+                      <Users size={14} className="inline-icon" /> {v.capacity} kishi
+                    </span>
+                    <span className="venue-card-meta-item">
+                      <Star size={14} fill="currentColor" className="inline-icon text-gold" style={{color: '#C49B3C'}} /> {v.rating}
+                    </span>
                   </div>
                   <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 'var(--s-4)' }}>
                     {v.description}
@@ -284,13 +221,13 @@ export default function HomePage() {
           </div>
           <div className="grid grid-3">
             {[
-              { step: '01', icon: '🔍', title: "To'yxona tanlang", desc: "200+ to'yxona orasidan rayon, narx va sig'im bo'yicha eng mosini tanlang" },
-              { step: '02', icon: '📅', title: "Kun va xizmatlarni tanlang", desc: "Kalendardan bo'sh kunni belgilang, qo'shimcha xizmatlar qo'shing" },
-              { step: '03', icon: '✅', title: "Bron qiling va to'lang", desc: "25% avans to'lab joyingizni band qiling. Tasdiqlash darhol keladi" },
+              { step: '01', icon: <Search size={36} color="var(--white)" />, title: "To'yxona tanlang", desc: "200+ to'yxona orasidan rayon, narx va sig'im bo'yicha eng mosini tanlang" },
+              { step: '02', icon: <CalendarDays size={36} color="var(--white)" />, title: "Kun va xizmatlarni tanlang", desc: "Kalendardan bo'sh kunni belgilang, qo'shimcha xizmatlar qo'shing" },
+              { step: '03', icon: <CheckCircle2 size={36} color="var(--white)" />, title: "Bron qiling va to'lang", desc: "25% avans to'lab joyingizni band qiling. Tasdiqlash darhol keladi" },
             ].map((step, i) => (
               <div key={i} className={`reveal reveal-delay-${i + 1}`} style={{ textAlign: 'center', padding: 'var(--s-8)' }}>
                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, var(--burgundy), var(--burgundy-deep))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--s-4)', boxShadow: '0 8px 24px rgba(114,47,55,0.25)' }}>
-                  <span style={{ fontSize: '1.8rem' }}>{step.icon}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{step.icon}</span>
                 </div>
                 <div style={{ fontFamily: 'var(--font-accent)', fontSize: '0.85rem', color: 'var(--gold)', letterSpacing: '0.1em', marginBottom: 'var(--s-2)' }}>QADAM {step.step}</div>
                 <h4 style={{ fontSize: '1.2rem', marginBottom: 'var(--s-3)' }}>{step.title}</h4>
@@ -362,8 +299,16 @@ export default function HomePage() {
         <div className="container">
           <p style={{ textAlign: 'center', fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 'var(--s-8)' }}>Hamkorlarimiz</p>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 'var(--s-12)', flexWrap: 'wrap', opacity: 0.45 }}>
-            {['🏨 Hilton', '✈️ Uzbekistan Airways', '🌹 Premium Florals', '🎂 Royal Bakery', '📷 Studio Pro'].map((p, i) => (
-              <span key={i} style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.05em' }}>{p}</span>
+            {[
+              { name: 'Hilton', icon: <Building2 size={18} /> },
+              { name: 'Uzbekistan Airways', icon: <Building2 size={18} /> },
+              { name: 'Premium Florals', icon: <Building2 size={18} /> },
+              { name: 'Royal Bakery', icon: <Building2 size={18} /> },
+              { name: 'Studio Pro', icon: <Building2 size={18} /> }
+            ].map((p, i) => (
+              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.05em' }}>
+                {p.icon} {p.name}
+              </span>
             ))}
           </div>
         </div>
@@ -381,11 +326,17 @@ export default function HomePage() {
             </p>
             <div style={{ display: 'flex', gap: 'var(--s-4)', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/halls" className="btn btn-gold btn-xl">
-                🏛️ To&apos;yxonalarni ko&apos;rish
+                <Building2 className="inline-icon" size={20} /> To&apos;yxonalarni ko&apos;rish
               </Link>
-              <Link href="/register" className="btn btn-xl" style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--gold-light)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                ✨ Bepul boshlash
-              </Link>
+              {!isAuthenticated ? (
+                <Link href="/register" className="btn btn-xl" style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--gold-light)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <Sparkles className="inline-icon" size={20} /> Bepul boshlash
+                </Link>
+              ) : (
+                <Link href="/favorites" className="btn btn-xl" style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--gold-light)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <Heart className="inline-icon" size={20} fill="currentColor" /> Sevimlilarni ko&apos;rish
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -102,7 +102,7 @@ export const hallsService = {
     api.get<ApiResponse<Hall>>(`/api/halls/${hallId}`),
 
   getBookedDates: (hallId: string) =>
-    api.get<ApiResponse<{ bookedDates: string[] }>>(`/api/halls/${hallId}/booked-dates`),
+    api.get<ApiResponse<{ bookedDates: string[], bookedDetails?: Record<string, string> }>>(`/api/halls/${hallId}/booked-dates`),
 
   getAmenities: (hallId: string) =>
     api.get<ApiResponse<Amenity[]>>(`/api/halls/${hallId}/amenities`),
@@ -135,6 +135,7 @@ export interface BookingListParams {
   page?: number;
   limit?: number;
   status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  userId?: string;
 }
 
 export const bookingsService = {
@@ -142,7 +143,7 @@ export const bookingsService = {
     api.get<ApiResponse<{ bookings: Booking[]; pagination: Pagination }>>('/api/bookings', { params }),
 
   myBookings: (params?: BookingListParams) =>
-    api.get<ApiResponse<{ bookings: Booking[]; pagination: Pagination }>>('/api/my-bookings', { params }),
+    api.get<ApiResponse<{ bookings: Booking[]; pagination: Pagination }>>('/api/bookings', { params }),
 
   getById: (bookingId: string) =>
     api.get<ApiResponse<Booking>>(`/api/bookings/${bookingId}`),
@@ -268,6 +269,21 @@ export const invitationsService = {
 // ─── 11. ADMIN ───────────────────────────────────────────────────────────────
 
 export const adminService = {
+  // Settings
+  getSettings: () =>
+    api.get<ApiResponse<Record<string, any>>>('/api/admin/settings'),
+
+  updateSettings: (data: Record<string, any>) =>
+    api.post<ApiResponse<Record<string, any>>>('/api/admin/settings', data),
+
+  // Bulk
+  bulkAction: (data: { resource: string; action: string; ids: string[]; value?: any }) =>
+    api.post<ApiResponse<{ updatedCount: number }>>('/api/admin/bulk', data),
+
+  // Logs
+  getLogs: (params?: { action?: string; userId?: string; page?: number; limit?: number }) =>
+    api.get<ApiResponse<{ logs: any[]; pagination?: Pagination }>>('/api/admin/logs', { params }),
+
   // Dashboard
   getDashboard: (type: 'overview' | 'analytics' | 'trends' = 'overview') =>
     api.get<ApiResponse<DashboardStats>>('/api/admin/dashboard', { params: { type } }),

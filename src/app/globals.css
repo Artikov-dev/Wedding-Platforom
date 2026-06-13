@@ -516,8 +516,8 @@ h4 { font-size: 1.25rem; }
 /* ═══════════════════════════════════════════════
    TOAST
    ═══════════════════════════════════════════════ */
-.toast-container { position: fixed; top: var(--s-6); right: var(--s-6); z-index: 2000; display: flex; flex-direction: column; gap: var(--s-3); }
-.toast { padding: 1rem 1.4rem; border-radius: var(--r-lg); font-size: 0.9rem; font-weight: 500; animation: slideInRight 0.4s var(--ease-spring); box-shadow: var(--shadow-elevated); display: flex; align-items: center; gap: var(--s-3); max-width: 400px; backdrop-filter: blur(12px); }
+.toast-container { position: fixed; top: var(--s-6); left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: var(--s-3); align-items: center; pointer-events: none; }
+.toast { padding: 1rem 1.4rem; border-radius: var(--r-full); font-size: 0.9rem; font-weight: 500; animation: slideDownTop 0.4s var(--ease-spring); box-shadow: var(--shadow-dramatic); display: flex; align-items: center; justify-content: center; gap: var(--s-3); max-width: 450px; min-width: 300px; backdrop-filter: blur(16px); text-align: center; pointer-events: auto; }
 .toast-success { background: rgba(74,139,92,0.95); color: white; }
 .toast-error { background: rgba(184,58,58,0.95); color: white; }
 .toast-info { background: rgba(74,123,155,0.95); color: white; }
@@ -979,7 +979,11 @@ h4 { font-size: 1.25rem; }
    ═══════════════════════════════════════════════ */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideDownTop { from { opacity: 0; transform: translateY(-40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes bookOpen { 
+  0% { opacity: 0; transform: translateX(-50%) perspective(400px) rotateX(-90deg) translateY(10px); transform-origin: bottom center; } 
+  100% { opacity: 1; transform: translateX(-50%) perspective(400px) rotateX(0deg) translateY(0); transform-origin: bottom center; } 
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes floatSlow { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-20px, 15px); } }
 
@@ -1029,3 +1033,4 @@ h4 { font-size: 1.25rem; }
   .container { padding: 0 var(--s-4); }
   .hero h1 { font-size: 2.2rem; }
 }
+.inline-icon { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 6px; }

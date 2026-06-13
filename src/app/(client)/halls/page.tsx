@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { Hall } from '@/types';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
+import { Search } from 'lucide-react';
 
 function HallsContent() {
   const searchParams = useSearchParams();
@@ -52,8 +53,10 @@ function HallsContent() {
     if (!isAuthenticated) return;
     try {
       const res = await favoritesService.list();
-      const list = Array.isArray(res.data.data) ? res.data.data : [];
-      setFavoriteIds(new Set(list.map((f: { hallId?: string; id: string }) => f.hallId || f.id)));
+      const d = res.data.data;
+      const list = Array.isArray(d) ? d : ((d as any)?.favorites || []);
+      const favIds = new Set(list.map((f: { hallId?: string; id: string }) => f.hallId || f.id));
+      setFavoriteIds(favIds);
     } catch {}
   }, [isAuthenticated]);
 
@@ -171,7 +174,7 @@ function HallsContent() {
             </>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">🔍</div>
+              <div className="empty-state-icon"><Search size={48} className="text-muted" /></div>
               <h3>To&apos;yxona topilmadi</h3>
               <p>Filterlarni o&apos;zgartirib qaytadan qidiring</p>
             </div>

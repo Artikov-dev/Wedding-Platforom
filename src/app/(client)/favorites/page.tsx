@@ -8,6 +8,7 @@ import { favoritesService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { Favorite } from '@/types';
+import { Lock, Heart } from 'lucide-react';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -21,7 +22,7 @@ export default function FavoritesPage() {
     try {
       const res = await favoritesService.list();
       const d = res.data.data;
-      const list = Array.isArray(d) ? d : [];
+      const list = Array.isArray(d) ? d : ((d as any)?.favorites || []);
       // Backend returns hall fields directly (not nested under .hall)
       // Normalize: if item has 'name' but no 'hall', wrap it
       const normalized = list.map((item: Record<string, unknown>) => {
@@ -61,7 +62,7 @@ export default function FavoritesPage() {
         <div className="container" style={{ padding: 'var(--s-10) var(--s-8) var(--s-16)' }}>
           {!isAuthenticated ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🔐</div>
+              <div className="empty-state-icon"><Lock size={48} className="text-muted" /></div>
               <h3>Tizimga kiring</h3>
               <p style={{ marginBottom: 'var(--s-6)' }}>Sevimlilarni ko&apos;rish uchun tizimga kiring</p>
               <a href="/login" className="btn btn-primary">Kirish</a>
@@ -81,9 +82,9 @@ export default function FavoritesPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-icon">❤️</div>
+              <div className="empty-state-icon"><Heart size={48} className="text-muted" /></div>
               <h3>Sevimlilar bo&apos;sh</h3>
-              <p style={{ marginBottom: 'var(--s-6)' }}>To&apos;yxona sahifasida ❤️ tugmasini bosing</p>
+              <p style={{ marginBottom: 'var(--s-6)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>To&apos;yxona sahifasida <Heart size={16} fill="currentColor" /> tugmasini bosing</p>
               <a href="/halls" className="btn btn-primary">To&apos;yxonalarni ko&apos;rish</a>
             </div>
           )}

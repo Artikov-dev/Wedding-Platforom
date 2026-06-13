@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/ui/Modal';
 import { adminService, authService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
+import { PersonAddOutlined, ClearOutlined } from '@mui/icons-material';
 
 interface Owner {
   id: string;
@@ -86,8 +87,8 @@ export default function AdminOwnersPage() {
           <h1 className="page-title" style={{ marginBottom: 'var(--s-1)' }}>To&apos;yxona egalari</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{owners.length} ta ega ro&apos;yxatda</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <PersonAddOutlined sx={{ fontSize: 18 }} />
           Yangi ega qo&apos;shish
         </button>
       </div>
@@ -101,7 +102,10 @@ export default function AdminOwnersPage() {
         {search && (
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
             <label className="form-label">&nbsp;</label>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')}>Tozalash</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <ClearOutlined sx={{ fontSize: 16 }} />
+              Tozalash
+            </button>
           </div>
         )}
       </div>

@@ -6,6 +6,13 @@ import { bookingsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
+import { 
+  CheckOutlined, 
+  CloseOutlined, 
+  VisibilityOutlined, 
+  FormatListNumberedOutlined, 
+  DeleteOutlineOutlined 
+} from '@mui/icons-material';
 
 const STATUS_COLOR: Record<string, string> = {
   CONFIRMED: 'badge-success',
@@ -61,6 +68,21 @@ export default function OwnerBookingsPage() {
       }
     }
     finally { setUpdatingId(null); }
+  };
+
+  const deleteBooking = async (id: string) => {
+    if (!confirm('Haqiqatan ham ushbu bronni o\'chirib tashlamoqchimisiz?')) return;
+    setUpdatingId(id);
+    try {
+      await bookingsService.cancel(id);
+      setBookings(prev => prev.filter(b => b.id !== id));
+      if (selected?.id === id) setSelected(null);
+      showToast('Bron o\'chirildi', 'success');
+    } catch {
+      showToast('O\'chirishda xatolik yuz berdi', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const filtered = bookings.filter(b => {
@@ -145,24 +167,29 @@ export default function OwnerBookingsPage() {
                         <button
                           className="btn btn-sm btn-secondary"
                           disabled={updatingId === b.id}
-                          onClick={() => updateStatus(b.id, 'CONFIRMED')}
+                          onClick={(e) => { e.stopPropagation(); updateStatus(b.id, 'CONFIRMED'); }}
                           title="Tasdiqlash"
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          <CheckOutlined sx={{ fontSize: 16 }} />
                         </button>
                       )}
-                      {(b.status === 'PENDING' || b.status === 'CONFIRMED') && (
-                        <button
-                          className="btn btn-sm btn-danger"
-                          disabled={updatingId === b.id}
-                          onClick={() => updateStatus(b.id, 'CANCELLED')}
-                          title="Bekor qilish"
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
-                      )}
-                      <button className="btn btn-sm btn-ghost" title="Batafsil">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        disabled={updatingId === b.id}
+                        onClick={(e) => { e.stopPropagation(); deleteBooking(b.id); }}
+                        title="O'chirish"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <DeleteOutlineOutlined sx={{ fontSize: 16 }} />
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-ghost" 
+                        title="Batafsil" 
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={(e) => { e.stopPropagation(); setSelected(b); }}
+                      >
+                        <VisibilityOutlined sx={{ fontSize: 16 }} />
                       </button>
                     </div>
                   </td>
@@ -173,7 +200,7 @@ export default function OwnerBookingsPage() {
         </div>
       ) : (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center' }}><FormatListNumberedOutlined sx={{ fontSize: 64 }} /></div>
           <h3>{bookings.length === 0 ? "Hali bronlar yo'q" : 'Filter natijasi bo\'sh'}</h3>
           {bookings.length > 0 && <button className="btn btn-ghost" onClick={() => { setStatusFilter(''); setDateFilter(''); }}>Tozalash</button>}
         </div>
@@ -202,11 +229,33 @@ export default function OwnerBookingsPage() {
               </div>
             </div>
 
-            <div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 2 }}>Status</div>
-              <span className={`badge ${STATUS_COLOR[selected.status] || 'badge-warning'}`}>
-                {BOOKING_STATUSES[selected.status] || selected.status}
-              </span>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 4 }}>Statusni o'zgartirish</label>
+              <select 
+                className="form-select" 
+                value={selected.status}
+                onChange={(e) => updateStatus(selected.id, e.target.value)}
+                disabled={updatingId === selected.id}
+                style={{
+                  fontWeight: 600,
+                  backgroundColor: selected.status === 'CANCELLED' ? 'rgba(220, 53, 69, 0.05)' : 
+                                   (selected.status === 'CONFIRMED' || selected.status === 'COMPLETED') ? 'rgba(46, 125, 50, 0.05)' : 
+                                   'var(--surface)',
+                  color: selected.status === 'CANCELLED' ? 'var(--danger)' : 
+                         (selected.status === 'CONFIRMED' || selected.status === 'COMPLETED') ? 'var(--success)' : 
+                         '#C49B3C',
+                  border: `1px solid ${
+                    selected.status === 'CANCELLED' ? 'var(--danger)' : 
+                    (selected.status === 'CONFIRMED' || selected.status === 'COMPLETED') ? 'var(--success)' : 
+                    '#C49B3C'
+                  }40`,
+                  padding: '8px 12px'
+                }}
+              >
+                {Object.entries(BOOKING_STATUSES).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
             </div>
 
             {selected.user && (
@@ -221,31 +270,6 @@ export default function OwnerBookingsPage() {
               <div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 2 }}>Izoh</div>
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{selected.notes}</div>
-              </div>
-            )}
-
-            {(selected.status === 'PENDING' || selected.status === 'CONFIRMED') && (
-              <div style={{ display: 'flex', gap: 'var(--s-3)', marginTop: 'var(--s-4)', paddingTop: 'var(--s-4)', borderTop: '1px solid var(--border)' }}>
-                {selected.status === 'PENDING' && (
-                  <button
-                    className="btn btn-secondary"
-                    style={{ flex: 1 }}
-                    onClick={() => updateStatus(selected.id, 'CONFIRMED')}
-                    disabled={updatingId === selected.id}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}><polyline points="20 6 9 17 4 12"/></svg>
-                    Tasdiqlash
-                  </button>
-                )}
-                <button
-                  className="btn btn-danger"
-                  style={{ flex: 1 }}
-                  onClick={() => updateStatus(selected.id, 'CANCELLED')}
-                  disabled={updatingId === selected.id}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  Bekor qilish
-                </button>
               </div>
             )}
           </div>
