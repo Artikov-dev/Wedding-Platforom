@@ -5,9 +5,14 @@ import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
 import { ImageOutlined } from '@mui/icons-material';
+import dynamic from 'next/dynamic';
+
+const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), { ssr: false });
 
 export default function RegisterHallPage() {
   const [form, setForm] = useState({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -34,9 +39,12 @@ export default function RegisterHallPage() {
         address: form.address || undefined,
         phone: form.phone || undefined,
         imageUrl: form.imageUrl || undefined,
+        latitude,
+        longitude,
       });
       showToast("To'yxona yuborildi! Admin tasdiqlashini kuting");
       setForm({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
+      setLatitude(undefined); setLongitude(undefined);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Xatolik';
       showToast(msg, 'error');
@@ -85,6 +93,10 @@ export default function RegisterHallPage() {
           <div className="form-group">
             <label className="form-label">Manzil</label>
             <input className="form-input" placeholder="To'liq manzil" value={form.address} onChange={e => update('address', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Xaritadan joylashuvni tanlang</label>
+            <LocationPicker latitude={latitude} longitude={longitude} onChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }} />
           </div>
           <div className="form-group">
             <label className="form-label">Telefon</label>

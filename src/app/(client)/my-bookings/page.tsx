@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { bookingsService } from '@/services/api.service';
@@ -10,6 +10,9 @@ import { Booking } from '@/types';
 import { formatPrice, formatDate, BOOKING_STATUSES } from '@/lib/utils';
 import { bookingStore } from '@/lib/bookingStore';
 import { Lock, ClipboardList } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { InvitationCard } from '@/components/ui/InvitationCard';
 
 const statusColor: Record<string, string> = {
   CONFIRMED: 'badge-success',
@@ -57,6 +60,9 @@ const DEMO_BOOKINGS: Booking[] = [
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBookingForCard, setSelectedBookingForCard] = useState<Booking | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const { user, isAuthenticated } = useAuth();
 
@@ -91,6 +97,30 @@ export default function MyBookingsPage() {
       } else {
         showToast('Xatolik yuz berdi', 'error');
       }
+    }
+  };
+
+  const downloadPDF = async () => {
+    if (!cardRef.current) return;
+    setIsGeneratingPDF(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [600, 848]
+      });
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, 600, 848);
+      pdf.save(`Taklifnoma-${selectedBookingForCard?.hall?.name || 'Toyxona'}.pdf`);
+      showToast('PDF muvaffaqiyatli yuklab olindi!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('PDF yaratishda xatolik yuz berdi', 'error');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -163,10 +193,15 @@ export default function MyBookingsPage() {
                         </span>
                       </td>
                       <td>
+                        {b.status === 'CONFIRMED' && (
+                          <button className="btn btn-sm btn-outline" onClick={() => setSelectedBookingForCard(b)} style={{ marginRight: 8, borderColor: '#D4AF37', color: '#D4AF37' }}>
+                            💌 Taklifnoma
+                          </button>
+                        )}
                         {b.status !== 'CANCELLED' && b.status !== 'COMPLETED' && (
                           <button className="btn btn-sm btn-danger" onClick={() => cancelBooking(b.id)}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
-                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                             Bekor qilish
                           </button>
@@ -187,6 +222,37 @@ export default function MyBookingsPage() {
           )}
         </div>
       </div>
+
+      {selectedBookingForCard && (
+        <div className="modal-backdrop" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={() => setSelectedBookingForCard(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 700, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <button className="btn-close" onClick={() => setSelectedBookingForCard(null)}>✕</button>
+            <h3 style={{ marginBottom: 20 }}>To&apos;y taklifnomasi</h3>
+
+            {/* Mathematically scaled wrapper: 600x848 scaled by 0.65.
+                Width becomes 390 (-105 margin each side).
+                Height becomes 551.2 (-296.8 margin bottom). */}
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+              <div style={{ 
+                width: '600px', 
+                height: '848px', 
+                transform: 'scale(0.65)', 
+                transformOrigin: 'top center', 
+                marginBottom: '-296px',
+                marginLeft: '-105px',
+                marginRight: '-105px'
+              }}>
+                <InvitationCard ref={cardRef} booking={selectedBookingForCard} />
+              </div>
+            </div>
+
+            <button className="btn btn-primary" onClick={downloadPDF} disabled={isGeneratingPDF} style={{ marginTop: 20, width: '100%', background: '#D4AF37', border: 'none' }}>
+              {isGeneratingPDF ? 'PDF yaratilmoqda...' : '📄 PDF qilib yuklab olish'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

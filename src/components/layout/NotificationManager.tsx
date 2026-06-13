@@ -5,30 +5,33 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import api from '@/lib/api';
 
-// Web Audio API for a professional "Ding" sound
+// Web Audio API for a professional "Apple/iOS Double Chime" sound
 const playNotificationSound = () => {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     
     const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    osc.type = 'sine';
-    // Frequency for a pleasant bell/ding sound
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5); // A4
-
-    gainNode.gain.setValueAtTime(0, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
-
-    osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 1);
+    
+    // Ping 1 (C6)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(1046.50, ctx.currentTime); 
+    gain1.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc1.connect(gain1); gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.4);
+    
+    // Ping 2 (E6)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.15); 
+    gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.15); osc2.stop(ctx.currentTime + 0.8);
   } catch (e) {
     console.error("Audio play failed:", e);
   }
@@ -57,7 +60,8 @@ export function NotificationManager() {
           // If unread count went up, it means a new notification arrived
           if (currentUnread > previousUnreadCountRef.current) {
             playNotificationSound();
-            showToast('Yangi bildirishnoma! Qayta yuklang yoki tekshiring.', 'success');
+            const message = res.data?.data?.notifications?.[0]?.message || 'Sizda yangi xabarnoma mavjud!';
+            showToast(message, 'live_notification' as any);
           }
         } else {
           isFirstRender.current = false;

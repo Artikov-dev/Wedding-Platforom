@@ -4,12 +4,17 @@ import React, { useState } from 'react';
 import { hallsService } from '@/services/api.service';
 import { useToast } from '@/components/ui/Toast';
 import { DISTRICTS, HALL_CATEGORIES } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), { ssr: false });
 
 interface Singer { name: string; price: string; }
 interface Car { brand: string; price: string; }
 
 export default function AdminCreateHallPage() {
   const [form, setForm] = useState({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
   const [singers, setSingers] = useState<Singer[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [menuItems, setMenuItems] = useState<string[]>([]);
@@ -41,9 +46,13 @@ export default function AdminCreateHallPage() {
         address: form.address || undefined,
         phone: form.phone || undefined,
         imageUrl: form.imageUrl || undefined,
+        latitude,
+        longitude,
+        approvalStatus: 'APPROVED' as any,
       });
       showToast("To'yxona qo'shildi!");
       setForm({ name: '', description: '', category: '', capacity: '', pricePerPlate: '', city: '', address: '', phone: '', imageUrl: '' });
+      setLatitude(undefined); setLongitude(undefined);
       setSingers([]); setCars([]); setMenuItems([]); setHasSurnay(false); setSurnayPrice('');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Xatolik';
@@ -67,10 +76,13 @@ export default function AdminCreateHallPage() {
             <div className="form-group"><label className="form-label">Narx (so&apos;m/kishi) *</label><input type="number" className="form-input" value={form.pricePerPlate} onChange={e => update('pricePerPlate', e.target.value)} /></div>
           </div>
           <div className="form-row">
-            <div className="form-group"><label className="form-label">Manzil</label><input className="form-input" value={form.address} onChange={e => update('address', e.target.value)} /></div>
-            <div className="form-group"><label className="form-label">Telefon</label><input className="form-input" value={form.phone} onChange={e => update('phone', e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Manzil</label><input className="form-input" value={form.address} onChange={e => update('address', e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Xaritadan joylashuvni tanlang</label>
+            <LocationPicker latitude={latitude} longitude={longitude} onChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }} />
           </div>
-          <div className="form-group"><label className="form-label">Rasm URL</label><input className="form-input" placeholder="https://..." value={form.imageUrl} onChange={e => update('imageUrl', e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Telefon</label><input className="form-input" value={form.phone} onChange={e => update('phone', e.target.value)} /></div>
+        </div>
+        <div className="form-group"><label className="form-label">Rasm URL</label><input className="form-input" placeholder="https://..." value={form.imageUrl} onChange={e => update('imageUrl', e.target.value)} /></div>
 
           {/* Qo'shimcha xizmatlar */}
           <h3 style={{ marginTop: 'var(--space-2xl)', marginBottom: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--border)' }}>

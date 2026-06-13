@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -13,6 +14,10 @@ import { formatPrice } from '@/lib/utils';
 import { bookingStore } from '@/lib/bookingStore';
 import PaymentModal from '@/components/payment/PaymentModal';
 import { Building2, Heart, Camera, MapPin, Users, Coins, Star, CalendarDays, ClipboardList, AlertCircle, CheckCircle2, ParkingCircle, Wind, Mic2, Lightbulb, Utensils, Accessibility, ShieldCheck, XCircle, Car, Train, Phone, Sparkles, MessageSquare, PartyPopper, Lock, Smartphone } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const Pannellum = dynamic(() => import('pannellum-react').then(mod => mod.Pannellum), { ssr: false });
+const PannellumViewer = Pannellum as any;
 
 /* ── Fallback gallery images (Unsplash) when a hall has none ── */
 const FALLBACK_IMAGES = [
@@ -61,6 +66,8 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
   const [activeImg, setActiveImg] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const router = useRouter();
   const [similarHalls, setSimilarHalls] = useState<Hall[]>([]);
   const [activeTab, setActiveTab] = useState<'info' | 'reviews' | 'location'>('info');
 
@@ -69,6 +76,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [show360, setShow360] = useState(false);
   const [notes, setNotes] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -219,7 +227,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
           showToast("Bron qabul qilindi, to'lovni keyinroq amalga oshiring");
           setShowBookingForm(false);
           setSelectedDate(null);
-          setBookedDates(p => [...p, selectedDate]);
+          setBookedDates(p => selectedDate ? [...p, selectedDate] : p);
           setGuests(''); setNotes(''); setSelectedServices([]);
           return;
         }
@@ -254,12 +262,10 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
           console.error('Email sending failed', err);
         }
       }
-
-      showToast("Bron muvaffaqiyatli amalga oshirildi", 'success');
+      setShowSuccessModal(true);
       setShowBookingForm(false);
       setShowPayment(false);
-      setSelectedDate(null);
-      setGuests('');
+      // We do not clear selectedDate and guests here so they remain visible in the success modal.
       setSelectedServices([]);
       setNotes('');
       fetchHall(); // refresh dates
@@ -371,14 +377,39 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
         <div style={{ maxWidth: 'var(--max-w)', margin: '0 auto', padding: 'var(--s-4) var(--s-8) 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 'var(--s-2)', height: 480, borderRadius: 'var(--r-xl)', overflow: 'hidden' }}>
             {/* Main image */}
-            <div style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }} onClick={() => { setActiveImg(0); setLightbox(true); }}>
-              <img
-                src={heroImages[0]}
-                alt={hall.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}
-                onError={e => { (e.target as HTMLImageElement).src = FALLBACK_IMAGES[0]; }}
-              />
-              <div style={{ position: 'absolute', bottom: 'var(--s-4)', left: 'var(--s-4)', display: 'flex', gap: 'var(--s-2)' }}>
+            <div style={{ position: 'relative', overflow: 'hidden', cursor: show360 ? 'default' : 'pointer' }} onClick={() => { if (!show360) { setActiveImg(0); setLightbox(true); }}}>
+              {show360 ? (
+                <div style={{ width: '100%', height: '100%', cursor: 'grab' }} onClick={e => e.stopPropagation()}>
+                  <PannellumViewer
+                    width="100%"
+                    height="100%"
+                    image="/360-demo.jpg"
+                    pitch={10}
+                    yaw={180}
+                    hfov={110}
+                    autoLoad
+                    showZoomCtrl={false}
+                  />
+                </div>
+              ) : (
+                <img
+                  src={heroImages[0]}
+                  alt={hall.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}
+                  onError={e => { (e.target as HTMLImageElement).src = FALLBACK_IMAGES[0]; }}
+                />
+              )}
+              
+              <div style={{ position: 'absolute', top: 'var(--s-4)', left: 'var(--s-4)', display: 'flex', gap: 'var(--s-2)' }}>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setShow360(!show360); }}
+                  style={{ background: show360 ? 'var(--burgundy)' : 'rgba(255,255,255,0.92)', color: show360 ? '#fff' : 'var(--text)', border: 'none', padding: '0.4rem 1rem', borderRadius: 'var(--r-full)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', zIndex: 10 }}
+                >
+                  🥽 {show360 ? 'Oddiy rasmlar' : '360° Virtual Tur'}
+                </button>
+              </div>
+
+              <div style={{ position: 'absolute', bottom: 'var(--s-4)', left: 'var(--s-4)', display: 'flex', gap: 'var(--s-2)', zIndex: 10, pointerEvents: 'none' }}>
                 <span style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)', padding: '0.3rem 0.9rem', borderRadius: 'var(--r-full)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {hall.category || 'Premium'}
                 </span>
@@ -390,7 +421,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
               </div>
               <button
                 onClick={e => { e.stopPropagation(); toggleFavorite(); }}
-                style={{ position: 'absolute', top: 'var(--s-4)', right: 'var(--s-4)', width: 44, height: 44, borderRadius: '50%', background: isFavorite ? 'rgba(186,35,67,0.9)' : 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', transition: 'transform 0.2s' }}
+                style={{ position: 'absolute', top: 'var(--s-4)', right: 'var(--s-4)', width: 44, height: 44, borderRadius: '50%', background: isFavorite ? 'rgba(186,35,67,0.9)' : 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', transition: 'transform 0.2s', zIndex: 10 }}
               >
                 <Heart size={20} fill={isFavorite ? '#fff' : 'none'} color={isFavorite ? '#fff' : 'var(--text)'} />
               </button>
@@ -827,6 +858,57 @@ export default function HallDetailPage({ params }: { params: Promise<{ hallId: s
         onSuccess={processActualBooking}
         isProcessingOverride={bookingLoading}
       />
+
+      {/* Modern Success Ticket Modal */}
+      {showSuccessModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: 'white', width: '100%', maxWidth: 380, borderRadius: '24px', overflow: 'hidden', animation: 'dropIn 0.5s cubic-bezier(0.2, 1.2, 0.3, 1)', position: 'relative', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
+            <div style={{ background: 'linear-gradient(135deg, var(--burgundy), var(--burgundy-deep))', padding: '40px 20px 24px', textAlign: 'center', color: 'white', position: 'relative' }}>
+              <div style={{ width: 72, height: 72, background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--success)', boxShadow: '0 8px 16px rgba(0,0,0,0.2)' }}>
+                <CheckCircle2 size={40} />
+              </div>
+              <h2 style={{ fontSize: '1.6rem', marginBottom: 8, color: 'white', fontWeight: 800 }}>To'lov tasdiqlandi!</h2>
+              <p style={{ opacity: 0.9, fontSize: '0.9rem', lineHeight: 1.5 }}>Sizning broningiz muvaffaqiyatli qabul qilindi. Elektron chek pochtangizga yuborildi.</p>
+            </div>
+            <div style={{ padding: '24px', position: 'relative', background: 'var(--white)' }}>
+              {/* Ticket perforation effect */}
+              <div style={{ position: 'absolute', top: -12, left: -12, width: 24, height: 24, background: 'rgba(0,0,0,0.8)', borderRadius: '50%' }} />
+              <div style={{ position: 'absolute', top: -12, right: -12, width: 24, height: 24, background: 'rgba(0,0,0,0.8)', borderRadius: '50%' }} />
+              <div style={{ borderTop: '2px dashed rgba(0,0,0,0.1)', position: 'absolute', top: 0, left: 15, right: 15 }} />
+              
+              <div style={{ display: 'grid', gap: '16px', marginBottom: '24px', marginTop: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>To'yxona</div>
+                  <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-main)' }}>{hall?.name}</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: 'var(--cream)', padding: '12px', borderRadius: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Sana</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{selectedDate}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Mehmonlar</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{guestCount} kishi</div>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>To'langan avans (25%)</div>
+                  <div style={{ fontWeight: 800, fontSize: '1.4rem', color: 'var(--success)' }}>{formatPrice(advancePrice)}</div>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', background: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid #e2e8f0' }}>
+                <div style={{ height: 44, width: '100%', background: 'repeating-linear-gradient(90deg, #0f172a, #0f172a 3px, transparent 3px, transparent 6px, #0f172a 6px, #0f172a 8px, transparent 8px, transparent 12px, #0f172a 12px, #0f172a 16px, transparent 16px, transparent 18px)', opacity: 0.85, marginBottom: 12, borderRadius: 4 }} />
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.25em', fontFamily: 'monospace', fontWeight: 700 }}>WDDNG-{(Math.random()*100000000).toFixed(0)}</div>
+              </div>
+
+              <button onClick={() => { setShowSuccessModal(false); setSelectedDate(null); setGuests(''); router.push('/my-bookings'); }} className="btn btn-primary btn-lg" style={{ width: '100%', borderRadius: '12px', fontSize: '1rem' }}>
+                Mening bronlarimga o'tish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

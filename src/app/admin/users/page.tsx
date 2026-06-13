@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { adminService, bookingsService } from '@/services/api.service';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils';
 import { 
@@ -14,6 +15,7 @@ import {
 } from '@mui/icons-material';
 
 export default function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
   const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function AdminUsersPage() {
     setLoading(true);
     try {
       const res = await adminService.getUsers({ search: search || undefined, role: roleFilter || undefined, page, limit: 20 });
-      if (res.data?.success) {
+      if (res.data?.success && res.data.data) {
         setUsers(res.data.data.users || []);
         if (res.data.data.pagination) setTotalPages(res.data.data.pagination.pages);
       }
@@ -62,13 +64,32 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleChangeRole = async (user: any, newRole: any) => {
+    if (user.id === currentUser?.id) {
+      showToast(`Siz o'zingizning rolingizni o'zgartira olmaysiz!`, 'error');
+      return;
+    }
+    const roleLabels: Record<string, string> = { 'CUSTOMER': 'Mijoz', 'HALL_OWNER': "To'yxona egasi", 'ADMIN': 'Admin' };
+    if (!window.confirm(`Siz rostan ham ${user.firstName}ga "${roleLabels[newRole]}" huquqini bermoqchimisiz?`)) return;
+    
+    try {
+      const res = await adminService.updateUser(user.id, { role: newRole as any });
+      if (res.data?.success || res.data?.data) {
+        showToast(`Foydalanuvchi roli o'zgartirildi`, 'success');
+        fetchUsers();
+      }
+    } catch {
+      showToast('Xatolik yuz berdi', 'error');
+    }
+  };
+
   const openUserBookings = async (user: any) => {
     setSelectedUser(user);
     setBookingsLoading(true);
     try {
       const res = await bookingsService.list({ userId: user.id, limit: 50 });
       if (res.data?.success) {
-        setUserBookings(res.data.data.bookings || []);
+        setUserBookings(res.data.data?.bookings || []);
       }
     } catch {
       showToast('Bronlarni yuklashda xatolik', 'error');
@@ -134,9 +155,23 @@ export default function AdminUsersPage() {
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{user.phone}</div>
                   </td>
                   <td>
-                    <span className={`badge ${user.role === 'ADMIN' ? 'badge-primary' : user.role === 'HALL_OWNER' ? 'badge-secondary' : 'badge-light'}`} style={{ marginBottom: 4 }}>
-                      {user.role}
-                    </span>
+                    {user.id === currentUser?.id ? (
+                      <span className="badge badge-primary" style={{ marginBottom: 4 }}>
+                        {user.role}
+                      </span>
+                    ) : (
+                      <select 
+                        value={user.role} 
+                        onChange={(e) => handleChangeRole(user, e.target.value)}
+                        className={`badge ${user.role === 'ADMIN' ? 'badge-primary' : user.role === 'HALL_OWNER' ? 'badge-secondary' : 'badge-light'}`}
+                        style={{ marginBottom: 4, cursor: 'pointer', border: 'none', appearance: 'auto', outline: 'none', paddingRight: '16px' }}
+                        title="Rolni o'zgartirish"
+                      >
+                        <option value="CUSTOMER">Mijoz (Customer)</option>
+                        <option value="HALL_OWNER">To'yxona Egasi</option>
+                        <option value="ADMIN">Admin</option>
+                      </select>
+                    )}
                     <br/>
                     <span className={`badge ${user.status === 'BLOCKED' ? 'badge-danger' : 'badge-success'}`}>
                       {user.status || 'ACTIVE'}
@@ -155,16 +190,18 @@ export default function AdminUsersPage() {
                     </button>
                   </td>
                   <td>
-                    {user.role !== 'ADMIN' && (
-                      <button 
-                        className={`btn btn-sm ${user.status === 'BLOCKED' ? 'btn-outline' : 'btn-danger'}`} 
-                        onClick={() => handleToggleBlock(user)}
-                        title={user.status === 'BLOCKED' ? "Faollashtirish" : "Bloklash"}
-                        style={{ padding: '6px' }}
-                      >
-                        {user.status === 'BLOCKED' ? <CheckCircleOutlined sx={{ fontSize: 18 }} /> : <BlockOutlined sx={{ fontSize: 18 }} />}
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {user.id !== currentUser?.id && (
+                        <button 
+                          className={`btn btn-sm ${user.status === 'BLOCKED' ? 'btn-outline' : 'btn-danger'}`} 
+                          onClick={() => handleToggleBlock(user)}
+                          title={user.status === 'BLOCKED' ? "Faollashtirish" : "Bloklash"}
+                          style={{ padding: '4px 6px' }}
+                        >
+                          {user.status === 'BLOCKED' ? <CheckCircleOutlined sx={{ fontSize: 18 }} /> : <BlockOutlined sx={{ fontSize: 18 }} />}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

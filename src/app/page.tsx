@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import ParallaxHero from '@/components/home/ParallaxHero';
 import { Building2, Sparkles, CalendarDays, Heart, MapPin, Users, Star, Search, CreditCard, Utensils, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { hallsService, favoritesService } from '@/services/api.service';
+import { useToast } from '@/components/ui/Toast';
+import { Hall } from '@/types';
+import { formatPrice } from '@/lib/utils';
 
 /* ── Real Unsplash venue images ── */
 const VENUES = [
@@ -92,7 +96,35 @@ const STATS = [
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  const [halls, setHalls] = useState<Hall[]>([]);
+  const [likedVenues, setLikedVenues] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const res = await hallsService.search({ limit: 6 });
+        const fetched = res.data.data?.halls || [];
+        setHalls(fetched);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+      
+      if (isAuthenticated) {
+        favoritesService.list().then(res => {
+          const d = res.data.data;
+          const list = Array.isArray(d) ? d : ((d as any)?.favorites || []);
+          setLikedVenues(list.map((f: any) => f.hallId || f.id));
+        }).catch(console.error);
+      }
+    };
+    init();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -103,10 +135,36 @@ export default function HomePage() {
       },
       { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     );
-    document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right')
-      .forEach(el => observerRef.current?.observe(el));
+    // Give a small delay to ensure DOM is updated before observing
+    setTimeout(() => {
+      document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right')
+        .forEach(el => observerRef.current?.observe(el));
+    }, 50);
     return () => observerRef.current?.disconnect();
-  }, []);
+  }, [halls]);
+
+  const toggleLike = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      showToast('Sevimlilarga saqlash uchun tizimga kiring', 'error');
+      return;
+    }
+    try {
+      if (likedVenues.includes(id)) {
+        await favoritesService.remove(id);
+        setLikedVenues(prev => prev.filter(v => v !== id));
+        showToast("Sevimlilardan o'chirildi");
+      } else {
+        await favoritesService.add(id);
+        setLikedVenues(prev => [...prev, id]);
+        showToast("Sevimlilarga qo'shildi");
+      }
+    } catch {
+      showToast('Xatolik yuz berdi', 'error');
+    }
+  };
+
+  const displayHalls = halls.length > 0 ? halls : VENUES as unknown as Hall[];
 
   return (
     <>
@@ -138,44 +196,51 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-3">
-            {VENUES.map((v, i) => (
+            {displayHalls.map((v, i) => (
               <div key={v.id} className={`venue-card reveal reveal-delay-${(i % 3) + 1}`}>
                 <div className="venue-card-img">
                   <img
-                    src={v.image}
+                    src={(v as any).image || v.imageUrl || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&q=80'}
                     alt={v.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}
                     onError={e => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                     loading="lazy"
                   />
-                  {v.badge && <div className="venue-card-badge">{v.badge}</div>}
-                  <button className="venue-card-fav" aria-label="Sevimli">
-                    <Heart size={20} />
+                  {(v as any).badge && <div className="venue-card-badge">{(v as any).badge}</div>}
+                  <button 
+                    className="venue-card-fav" 
+                    aria-label="Sevimli"
+                    onClick={(e) => toggleLike(v.id, e)}
+                    style={{ color: likedVenues.includes(v.id) ? 'var(--burgundy)' : 'var(--text-main)', border: 'none', background: 'white', borderRadius: '50%', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Heart size={20} fill={likedVenues.includes(v.id) ? 'var(--burgundy)' : 'none'} color={likedVenues.includes(v.id) ? 'var(--burgundy)' : 'currentColor'} />
                   </button>
                 </div>
                 <div className="venue-card-content">
                   <h3 className="venue-card-name">{v.name}</h3>
                   <div className="venue-card-location">
-                    <MapPin size={14} className="inline-icon" /> {v.district} tumani
+                    <MapPin size={14} className="inline-icon" /> {(v as any).district || v.city || 'Toshkent'}
                   </div>
                   <div className="venue-card-meta">
                     <span className="venue-card-meta-item">
                       <Users size={14} className="inline-icon" /> {v.capacity} kishi
                     </span>
                     <span className="venue-card-meta-item">
-                      <Star size={14} fill="currentColor" className="inline-icon text-gold" style={{color: '#C49B3C'}} /> {v.rating}
+                      <Star size={14} fill="currentColor" className="inline-icon text-gold" style={{color: '#C49B3C'}} /> {v.rating || 4.8}
                     </span>
                   </div>
                   <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 'var(--s-4)' }}>
-                    {v.description}
+                    {v.description || 'Sizning unutilmas bayramlaringiz uchun hashamatli to\'yxona va yuqori darajadagi xizmat.'}
                   </p>
                   <div className="venue-card-divider" />
                   <div className="venue-card-footer">
                     <div className="venue-card-price">
-                      <span className="venue-card-price-value">{v.priceRange} so&apos;m</span>
+                      <span className="venue-card-price-value">
+                        {(v as any).priceRange ? (v as any).priceRange + " so'm" : formatPrice(v.pricePerPlate || 150000)}
+                      </span>
                       <span className="venue-card-price-label">1 kishi uchun</span>
                     </div>
-                    <Link href="/halls" className="btn btn-sm btn-primary">
+                    <Link href={`/halls/${v.id}`} className="btn btn-sm btn-primary">
                       Batafsil →
                     </Link>
                   </div>

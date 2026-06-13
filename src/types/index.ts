@@ -38,6 +38,8 @@ export interface Hall {
   city?: string;
   address?: string;
   phone?: string;
+  latitude?: number;
+  longitude?: number;
   rating?: number;
   ratings?: number | string;
   status?: string;
