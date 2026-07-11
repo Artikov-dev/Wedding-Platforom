@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 // Lokal backend bilan ishlash uchun. Deploy uchun Render manziliga qaytaring:
-// const BACKEND = 'https://wedding-backend-8.onrender.com';
-const BACKEND = process.env.BACKEND_URL || 'http://localhost:4000';
+const BACKEND = process.env.BACKEND_URL || 'https://wedding-backend-8.onrender.com';
 
 const nextConfig: NextConfig = {
   images: {

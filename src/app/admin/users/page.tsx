@@ -5,10 +5,10 @@ import { adminService, bookingsService } from '@/services/api.service';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils';
-import { 
-  PeopleOutlined, 
-  SearchOutlined, 
-  BlockOutlined, 
+import {
+  PeopleOutlined,
+  SearchOutlined,
+  BlockOutlined,
   CheckCircleOutlined,
   CalendarMonthOutlined,
   CloseOutlined
@@ -19,7 +19,7 @@ export default function AdminUsersPage() {
   const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -71,7 +71,7 @@ export default function AdminUsersPage() {
     }
     const roleLabels: Record<string, string> = { 'CUSTOMER': 'Mijoz', 'HALL_OWNER': "To'yxona egasi", 'ADMIN': 'Admin' };
     if (!window.confirm(`Siz rostan ham ${user.firstName}ga "${roleLabels[newRole]}" huquqini bermoqchimisiz?`)) return;
-    
+
     try {
       const res = await adminService.updateUser(user.id, { role: newRole as any });
       if (res.data?.success || res.data?.data) {
@@ -113,11 +113,11 @@ export default function AdminUsersPage() {
             <SearchOutlined sx={{ fontSize: 16 }} />
             Qidiruv
           </label>
-          <input 
-            type="text" 
-            className="form-input" 
-            placeholder="Ism, familiya yoki email..." 
-            value={search} 
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Ism, familiya yoki email..."
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
@@ -160,8 +160,8 @@ export default function AdminUsersPage() {
                         {user.role}
                       </span>
                     ) : (
-                      <select 
-                        value={user.role} 
+                      <select
+                        value={user.role}
                         onChange={(e) => handleChangeRole(user, e.target.value)}
                         className={`badge ${user.role === 'ADMIN' ? 'badge-primary' : user.role === 'HALL_OWNER' ? 'badge-secondary' : 'badge-light'}`}
                         style={{ marginBottom: 4, cursor: 'pointer', border: 'none', appearance: 'auto', outline: 'none', paddingRight: '16px' }}
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
                         <option value="ADMIN">Admin</option>
                       </select>
                     )}
-                    <br/>
+                    <br />
                     <span className={`badge ${user.status === 'BLOCKED' ? 'badge-danger' : 'badge-success'}`}>
                       {user.status || 'ACTIVE'}
                     </span>
@@ -181,8 +181,8 @@ export default function AdminUsersPage() {
                     {formatDate(user.createdAt)}
                   </td>
                   <td>
-                    <button 
-                      className="btn btn-ghost btn-sm" 
+                    <button
+                      className="btn btn-ghost btn-sm"
                       onClick={() => openUserBookings(user)}
                       style={{ color: 'var(--primary)', fontWeight: 600 }}
                     >
@@ -192,8 +192,8 @@ export default function AdminUsersPage() {
                   <td>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       {user.id !== currentUser?.id && (
-                        <button 
-                          className={`btn btn-sm ${user.status === 'BLOCKED' ? 'btn-outline' : 'btn-danger'}`} 
+                        <button
+                          className={`btn btn-sm ${user.status === 'BLOCKED' ? 'btn-outline' : 'btn-danger'}`}
                           onClick={() => handleToggleBlock(user)}
                           title={user.status === 'BLOCKED' ? "Faollashtirish" : "Bloklash"}
                           style={{ padding: '4px 6px' }}
@@ -257,7 +257,7 @@ export default function AdminUsersPage() {
                         <td style={{ fontWeight: 600 }}>{b.hall?.name || 'O\'chirilgan to\'yxona'}</td>
                         <td>{formatDate(b.eventDate)}</td>
                         <td>
-                           <span className={`badge ${b.status === 'CONFIRMED' ? 'badge-success' : b.status === 'PENDING' ? 'badge-warning' : 'badge-danger'}`}>
+                          <span className={`badge ${b.status === 'CONFIRMED' ? 'badge-success' : b.status === 'PENDING' ? 'badge-warning' : 'badge-danger'}`}>
                             {b.status}
                           </span>
                         </td>
@@ -269,7 +269,7 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: 'var(--s-6)', color: 'var(--text-muted)' }}>
-                <CalendarMonthOutlined sx={{ fontSize: 48, opacity: 0.2, marginBottom: 'var(--s-2)' }} /><br/>
+                <CalendarMonthOutlined sx={{ fontSize: 48, opacity: 0.2, marginBottom: 'var(--s-2)' }} /><br />
                 Ushbu mijozda bronlar mavjud emas
               </div>
             )}
